@@ -1,0 +1,165 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 100 0 0;
+    --foreground: 15 5 20;
+    --card: 100 0 0;
+    --card-foreground: 15 5 20;
+    --popover: 100 0 0;
+    --popover-foreground: 15 5 20;
+    --primary: 65 0.22 35;
+    --primary-foreground: 100 0 0;
+    --secondary: 95 0.02 290;
+    --secondary-foreground: 15 5 20;
+    --muted: 96 0.01 290;
+    --muted-foreground: 45 0.05 290;
+    --accent: 95 0.03 35;
+    --accent-foreground: 15 5 20;
+    --destructive: 50 0.22 25;
+    --destructive-foreground: 100 0 0;
+    --border: 90 0.03 290;
+    --input: 90 0.03 290;
+    --ring: 65 0.22 35;
+    --radius: 0.75rem;
+    --chart-1: 65 0.22 35;
+    --chart-2: 60 0.2 310;
+    --chart-3: 55 0.25 290;
+    --chart-4: 70 0.18 160;
+    --chart-5: 75 0.15 60;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Poppins", sans-serif;
+  }
+}
+
+/* Gradient utilities */
+.gradient-hero {
+  background: linear-gradient(135deg, #ff8a00 0%, #e2367a 50%, #6a2bd9 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #ff8a00 0%, #e2367a 50%, #6a2bd9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-btn {
+  background: linear-gradient(135deg, #ff8a00 0%, #e2367a 100%);
+}
+
+.gradient-card-1 {
+  background: linear-gradient(135deg, #ff8a00, #ffb347);
+}
+.gradient-card-2 {
+  background: linear-gradient(135deg, #e2367a, #ff6b6b);
+}
+.gradient-card-3 {
+  background: linear-gradient(135deg, #6a2bd9, #9b59b6);
+}
+.gradient-card-4 {
+  background: linear-gradient(135deg, #00c9a7, #00b4d8);
+}
+.gradient-card-5 {
+  background: linear-gradient(135deg, #ff6b35, #f7c59f);
+}
+.gradient-card-6 {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+.gradient-card-7 {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+.gradient-card-8 {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+/* Scroll animation */
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.fade-in-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Phone frame */
+.phone-frame {
+  border: 8px solid #1a1a2e;
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  background: #000;
+}
+
+/* Wave bottom */
+.wave-bottom {
+  position: relative;
+}
+.wave-bottom::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: white;
+  clip-path: ellipse(55% 100% at 50% 100%);
+}
+
+/* Chatbot */
+.chat-messages::-webkit-scrollbar {
+  width: 4px;
+}
+.chat-messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+/* Nav link hover */
+a.nav-link {
+  position: relative;
+}
+a.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(135deg, #ff8a00, #6a2bd9);
+  transition: width 0.3s ease;
+}
+a.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Scrollbar for screenshots */
+.screenshots-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.screenshots-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.screenshots-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #ff8a00, #6a2bd9);
+  border-radius: 10px;
+}
