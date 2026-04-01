@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Lang } from "../translations";
+import { CartoonCharacter } from "./CartoonCharacter";
 
 interface WalkthroughDemoProps {
   lang: Lang;
@@ -705,46 +706,12 @@ export default function WalkthroughDemo({ lang }: WalkthroughDemoProps) {
           ) : (
             <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12">
               <div className="relative flex-shrink-0 flex flex-col items-center">
-                <div className={isSpeaking ? "shyama-speaking" : "shyama-idle"}>
-                  <img
-                    src="/assets/generated/shyama-cartoon-transparent.dim_400x500.png"
-                    alt="Shyama"
-                    className="w-36 md:w-44 drop-shadow-2xl"
-                  />
-                </div>
-
-                {isSpeaking && (
-                  <div className="flex gap-1 mt-2">
-                    <div
-                      className="w-1.5 h-1.5 rounded-full bg-orange-400"
-                      style={{ animation: "dotPulse 0.8s ease 0s infinite" }}
-                    />
-                    <div
-                      className="w-1.5 h-1.5 rounded-full bg-orange-400"
-                      style={{ animation: "dotPulse 0.8s ease 0.2s infinite" }}
-                    />
-                    <div
-                      className="w-1.5 h-1.5 rounded-full bg-orange-400"
-                      style={{ animation: "dotPulse 0.8s ease 0.4s infinite" }}
-                    />
-                  </div>
-                )}
-
-                <div
-                  key={currentStep}
-                  className="mt-3 bg-white text-gray-800 rounded-2xl px-4 py-3 text-xs font-medium shadow-2xl max-w-[180px] text-center relative"
-                  style={{ animation: "speechBubbleIn 0.4s ease both" }}
-                >
-                  <div
-                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0"
-                    style={{
-                      borderLeft: "8px solid transparent",
-                      borderRight: "8px solid transparent",
-                      borderBottom: "8px solid white",
-                    }}
-                  />
-                  {narration}
-                </div>
+                <CartoonCharacter
+                  isSpeaking={isSpeaking}
+                  speechText={narration}
+                  size="medium"
+                  showSpeechBubble={true}
+                />
               </div>
 
               <div className="flex-1 flex flex-col items-center gap-6">

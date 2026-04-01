@@ -76,11 +76,25 @@ export default function Screenshots({ lang }: ScreenshotsProps) {
               data-ocid={`screenshots.item.${i + 1}`}
             >
               <div className="phone-frame w-48 sm:w-56">
-                <img
-                  src={src}
-                  alt={tr[key as keyof typeof tr]}
-                  className="w-full block"
-                />
+                {/* Relative wrapper for blur overlay */}
+                <div className="relative">
+                  <img
+                    src={src}
+                    alt={tr[key as keyof typeof tr]}
+                    className="w-full block"
+                  />
+                  {/* Blur overlay for top 15% where principal ID may appear */}
+                  <div
+                    className="absolute top-0 left-0 right-0 pointer-events-none"
+                    style={{
+                      height: "15%",
+                      backdropFilter: "blur(10px)",
+                      WebkitBackdropFilter: "blur(10px)",
+                      background: "rgba(255,255,255,0.3)",
+                      borderRadius: "inherit",
+                    }}
+                  />
+                </div>
               </div>
               <span className="text-sm font-semibold text-gray-600 text-center whitespace-nowrap">
                 {tr[key as keyof typeof tr]}

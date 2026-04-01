@@ -2,6 +2,7 @@ import { Globe, MessageCircle, Mic, MicOff, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Lang } from "../translations";
 import { t } from "../translations";
+import { CartoonCharacter } from "./CartoonCharacter";
 
 interface ShyamaAIProps {
   lang: Lang;
@@ -666,6 +667,7 @@ export default function ShyamaAI({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const msgCountRef = useRef(0);
@@ -709,10 +711,12 @@ export default function ShyamaAI({
     setInput("");
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
+      setIsSpeaking(true);
       const utt = new SpeechSynthesisUtterance(
         response.replace(/https?:\/\/[^\s]+/g, ""),
       );
       utt.lang = chatLang === "hi" ? "hi-IN" : "en-IN";
+      utt.onend = () => setIsSpeaking(false);
       if (chatLang === "en") {
         utt.pitch = 1.1;
         getVoices().then((voices) => {
@@ -789,9 +793,7 @@ export default function ShyamaAI({
         >
           <div className="gradient-hero px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                <MessageCircle className="w-4 h-4 text-white" />
-              </div>
+              <CartoonCharacter isSpeaking={isSpeaking} size="small" />
               <div>
                 <div className="text-white font-bold text-sm">Shyama</div>
                 <div className="text-white/70 text-xs">BillKaro Assistant</div>
