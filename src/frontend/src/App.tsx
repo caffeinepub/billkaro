@@ -10,7 +10,6 @@ import PushNotificationBar from "./components/PushNotificationBar";
 import ShyamaAI from "./components/ShyamaAI";
 import Testimonials from "./components/Testimonials";
 import WalkthroughDemo from "./components/WalkthroughDemo";
-import WhatsAppDemoButton from "./components/WhatsAppDemoButton";
 import WhySection from "./components/WhySection";
 import { Toaster } from "./components/ui/sonner";
 import type { Lang } from "./translations";
@@ -43,7 +42,6 @@ export default function App() {
         isOpen={chatOpen}
         onToggle={() => setChatOpen((v) => !v)}
       />
-      <WhatsAppDemoButton lang={lang} />
       <PushNotificationBar lang={lang} />
       <Toaster />
     </div>

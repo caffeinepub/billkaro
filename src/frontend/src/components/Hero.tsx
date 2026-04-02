@@ -1,6 +1,8 @@
+import { Canvas, useFrame } from "@react-three/fiber";
 import { ArrowRight, Download, MessageCircle } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import type * as THREE from "three";
 import type { Lang } from "../translations";
 import { t } from "../translations";
 
@@ -9,14 +11,194 @@ interface HeroProps {
   onOpenChat: () => void;
 }
 
-interface Particle {
+// ─── Three.js scene components ───────────────────────────────────────────────
+
+const SPHERE_DATA = [
+  {
+    pos: [-4, 2, -6] as [number, number, number],
+    scale: 1.8,
+    color: 0xff6b35,
+    speed: 0.003,
+  },
+  {
+    pos: [4, -1, -8] as [number, number, number],
+    scale: 2.2,
+    color: 0xe2367a,
+    speed: 0.002,
+  },
+  {
+    pos: [0, 3, -10] as [number, number, number],
+    scale: 2.8,
+    color: 0x8b5cf6,
+    speed: 0.0015,
+  },
+  {
+    pos: [-6, -2, -7] as [number, number, number],
+    scale: 1.5,
+    color: 0x6d28d9,
+    speed: 0.0025,
+  },
+  {
+    pos: [6, 3, -9] as [number, number, number],
+    scale: 2.0,
+    color: 0xff6b35,
+    speed: 0.0018,
+  },
+  {
+    pos: [-2, -3, -5] as [number, number, number],
+    scale: 1.3,
+    color: 0xe2367a,
+    speed: 0.0035,
+  },
+  {
+    pos: [3, -4, -11] as [number, number, number],
+    scale: 2.5,
+    color: 0x8b5cf6,
+    speed: 0.0012,
+  },
+  {
+    pos: [-5, 4, -12] as [number, number, number],
+    scale: 3.0,
+    color: 0xff6b35,
+    speed: 0.001,
+  },
+  {
+    pos: [7, -2, -6] as [number, number, number],
+    scale: 1.6,
+    color: 0x6d28d9,
+    speed: 0.0028,
+  },
+  {
+    pos: [1, 5, -8] as [number, number, number],
+    scale: 1.9,
+    color: 0xe2367a,
+    speed: 0.0022,
+  },
+];
+
+function GlowingSphere({
+  position,
+  scale,
+  color,
+  speed,
+}: {
+  position: [number, number, number];
+  scale: number;
+  color: number;
+  speed: number;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const offset = useMemo(() => Math.random() * Math.PI * 2, []);
+
+  useFrame(({ clock }) => {
+    if (!meshRef.current) return;
+    const elapsed = clock.getElapsedTime();
+    meshRef.current.rotation.x = elapsed * speed * 20;
+    meshRef.current.rotation.y = elapsed * speed * 30;
+    meshRef.current.position.y =
+      position[1] + Math.sin(elapsed * speed * 100 + offset) * 0.4;
+  });
+
+  return (
+    <mesh ref={meshRef} position={position} scale={scale}>
+      <sphereGeometry args={[1, 32, 32]} />
+      <meshStandardMaterial
+        color={color}
+        emissive={color}
+        emissiveIntensity={0.4}
+        transparent
+        opacity={0.18}
+        roughness={0.2}
+        metalness={0.5}
+      />
+    </mesh>
+  );
+}
+
+function StarField() {
+  const pointsRef = useRef<THREE.Points>(null);
+
+  const { positions, colors } = useMemo(() => {
+    const count = 300;
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    const palette = [
+      [1.0, 0.42, 0.21],
+      [0.89, 0.21, 0.48],
+      [0.54, 0.36, 0.96],
+      [1.0, 1.0, 1.0],
+      [1.0, 0.65, 0.0],
+      [0.78, 0.39, 1.0],
+    ];
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 30;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 20;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 20 - 5;
+      const c = palette[Math.floor(Math.random() * palette.length)];
+      col[i * 3] = c[0];
+      col[i * 3 + 1] = c[1];
+      col[i * 3 + 2] = c[2];
+    }
+    return { positions: pos, colors: col };
+  }, []);
+
+  useFrame(({ clock }) => {
+    if (!pointsRef.current) return;
+    pointsRef.current.rotation.y = clock.getElapsedTime() * 0.015;
+    pointsRef.current.rotation.x = clock.getElapsedTime() * 0.007;
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.06}
+        vertexColors
+        transparent
+        opacity={0.9}
+        sizeAttenuation
+      />
+    </points>
+  );
+}
+
+function ThreeScene() {
+  return (
+    <>
+      <ambientLight intensity={0.3} color={0x8b5cf6} />
+      <pointLight position={[5, 5, 2]} intensity={1.5} color={0xff6b35} />
+      <pointLight position={[-5, -3, 2]} intensity={1.2} color={0x8b5cf6} />
+      <pointLight position={[0, 8, -4]} intensity={0.8} color={0xe2367a} />
+      <StarField />
+      {SPHERE_DATA.map((s) => (
+        <GlowingSphere
+          key={`sphere-${s.color}-${s.pos[0]}`}
+          position={s.pos}
+          scale={s.scale}
+          color={s.color}
+          speed={s.speed}
+        />
+      ))}
+    </>
+  );
+}
+
+// ─── Enhanced 2D Canvas particles ────────────────────────────────────────────
+
+interface Particle2D {
   x: number;
   y: number;
   vx: number;
   vy: number;
   size: number;
+  baseSize: number;
   color: string;
   alpha: number;
+  seed: number;
+  isStar: boolean;
 }
 
 const PARTICLE_COLORS = [
@@ -24,12 +206,15 @@ const PARTICLE_COLORS = [
   "226,54,122",
   "139,92,246",
   "255,255,255",
+  "255,165,0",
+  "200,100,255",
 ];
 
-function HeroParticles() {
+function EnhancedParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
-  const particlesRef = useRef<Particle[]>([]);
+  const particlesRef = useRef<Particle2D[]>([]);
+  const mouseRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -44,19 +229,38 @@ function HeroParticles() {
     resize();
     window.addEventListener("resize", resize);
 
-    const count = 80;
-    particlesRef.current = Array.from({ length: count }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.6,
-      vy: (Math.random() - 0.5) * 0.6,
-      size: 1.5 + Math.random() * 2.5,
-      color:
-        PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
-      alpha: 0.4 + Math.random() * 0.6,
-    }));
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    };
+    const onMouseLeave = () => {
+      mouseRef.current = null;
+    };
+    const parent = canvas.parentElement;
+    parent?.addEventListener("mousemove", onMouseMove);
+    parent?.addEventListener("mouseleave", onMouseLeave);
 
-    const LINK_DISTANCE = 120;
+    const count = 150;
+    particlesRef.current = Array.from({ length: count }, (_, i) => {
+      const isStar = i < count * 0.2;
+      const base = isStar ? 5 + Math.random() * 3 : 1 + Math.random() * 4;
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        size: base,
+        baseSize: base,
+        color:
+          PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
+        alpha: 0.4 + Math.random() * 0.5,
+        seed: Math.random() * Math.PI * 2,
+        isStar,
+      };
+    });
+
+    const LINK_DISTANCE = 150;
+    const REPULSE_RADIUS = 120;
 
     const draw = () => {
       const w = canvas.width;
@@ -64,8 +268,30 @@ function HeroParticles() {
       ctx.clearRect(0, 0, w, h);
 
       const particles = particlesRef.current;
+      const mouse = mouseRef.current;
+      const now = Date.now();
 
       for (const p of particles) {
+        if (p.isStar) {
+          p.size = p.baseSize + Math.sin(now / 1000 + p.seed) * 1.5;
+        }
+        if (mouse) {
+          const dx = p.x - mouse.x;
+          const dy = p.y - mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < REPULSE_RADIUS && dist > 0) {
+            const force = (1 - dist / REPULSE_RADIUS) * 1.5;
+            p.vx += (dx / dist) * force * 0.15;
+            p.vy += (dy / dist) * force * 0.15;
+          }
+        }
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+        const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (spd < 0.1) {
+          p.vx += (Math.random() - 0.5) * 0.05;
+          p.vy += (Math.random() - 0.5) * 0.05;
+        }
         p.x += p.vx;
         p.y += p.vy;
         if (p.x < 0) p.x = w;
@@ -80,9 +306,17 @@ function HeroParticles() {
           const dy = particles[i].y - particles[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < LINK_DISTANCE) {
-            const opacity = (1 - dist / LINK_DISTANCE) * 0.15;
+            const opacity = (1 - dist / LINK_DISTANCE) * 0.2;
+            const grad = ctx.createLinearGradient(
+              particles[i].x,
+              particles[i].y,
+              particles[j].x,
+              particles[j].y,
+            );
+            grad.addColorStop(0, `rgba(${particles[i].color},${opacity})`);
+            grad.addColorStop(1, `rgba(${particles[j].color},${opacity})`);
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(${particles[i].color},${opacity})`;
+            ctx.strokeStyle = grad;
             ctx.lineWidth = 1;
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
@@ -92,6 +326,16 @@ function HeroParticles() {
       }
 
       for (const p of particles) {
+        const glowR = p.size * 3;
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
+        grd.addColorStop(0, `rgba(${p.color},${p.alpha * 0.8})`);
+        grd.addColorStop(0.4, `rgba(${p.color},${p.alpha * 0.3})`);
+        grd.addColorStop(1, `rgba(${p.color},0)`);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
@@ -106,6 +350,8 @@ function HeroParticles() {
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", resize);
+      parent?.removeEventListener("mousemove", onMouseMove);
+      parent?.removeEventListener("mouseleave", onMouseLeave);
     };
   }, []);
 
@@ -117,12 +363,14 @@ function HeroParticles() {
         inset: 0,
         width: "100%",
         height: "100%",
-        zIndex: 0,
+        zIndex: 1,
         pointerEvents: "none",
       }}
     />
   );
 }
+
+// ─── Hero component ───────────────────────────────────────────────────────────
 
 export default function Hero({ lang, onOpenChat }: HeroProps) {
   const tr = t[lang];
@@ -132,7 +380,27 @@ export default function Hero({ lang, onOpenChat }: HeroProps) {
       id="hero"
       className="relative min-h-screen flex items-center gradient-hero wave-bottom pt-16 overflow-hidden"
     >
-      <HeroParticles />
+      {/* Layer 0: Three.js 3D scene */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      >
+        <Canvas
+          frameloop="always"
+          camera={{ position: [0, 0, 5], fov: 70 }}
+          gl={{ alpha: true, antialias: true }}
+          style={{ width: "100%", height: "100%" }}
+        >
+          <ThreeScene />
+        </Canvas>
+      </div>
+
+      {/* Layer 1: Enhanced 2D particle canvas */}
+      <EnhancedParticles />
 
       <div
         className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl"
@@ -145,7 +413,7 @@ export default function Hero({ lang, onOpenChat }: HeroProps) {
 
       <div
         className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full"
-        style={{ zIndex: 1 }}
+        style={{ zIndex: 2 }}
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div
