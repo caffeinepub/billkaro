@@ -59,6 +59,52 @@ const addProductSteps: Record<Lang, Step[]> = {
       desc: '"Save" टैप करें और प्रोडक्ट बिलिंग के लिए तैयार है',
     },
   ],
+  raj: [
+    { icon: "📱", title: "BillKaro ऐप खोलो", desc: "थारे फोन पर ऐप चालू करो" },
+    {
+      icon: "🗂",
+      title: "Products पर जाओ",
+      desc: 'नीचे नेविगेशन सूं "Products" टैप करो',
+    },
+    {
+      icon: "➕",
+      title: "Add Product टैप करो",
+      desc: 'ऊपर दाईं तरफ "+" बटन दबाओ',
+    },
+    {
+      icon: "📝",
+      title: "प्रोडक्ट डिटेल्स भरो",
+      desc: "नाम, भाव, HSN कोड और SKU डालो",
+    },
+    {
+      icon: "✅",
+      title: "प्रोडक्ट सेव करो",
+      desc: '"Save" टैप करो और प्रोडक्ट बिलिंग खातर तैयार',
+    },
+  ],
+  gu: [
+    { icon: "📱", title: "BillKaro એપ ખોલો", desc: "તમારા ફોન પર એપ શરૂ કરો" },
+    {
+      icon: "🗂",
+      title: "Products પર જાઓ",
+      desc: 'નીચેની નેવિગેશનથી "Products" ટૅપ કરો',
+    },
+    {
+      icon: "➕",
+      title: "Add Product ટૅપ કરો",
+      desc: 'ઉપર જમણી બાજુ "+" બટન દબાવો',
+    },
+    {
+      icon: "📝",
+      title: "પ્રોડક્ટ વિગત ભરો",
+      desc: "નામ, કિંમત, HSN કોડ અને SKU દાખલ કરો",
+    },
+    {
+      icon: "✅",
+      title: "પ્રોડક્ટ સેવ કરો",
+      desc: '"Save" ટૅપ કરો અને પ્રોડક્ટ બિલિંગ માટે તૈયાર',
+    },
+  ],
 };
 
 const generateBillSteps: Record<Lang, Step[]> = {
@@ -116,6 +162,58 @@ const generateBillSteps: Record<Lang, Step[]> = {
       icon: "📤",
       title: "बिल बनाएं और शेयर करें",
       desc: '"Generate Invoice" टैप करें और GST बिल बनाएं',
+    },
+  ],
+  raj: [
+    { icon: "📱", title: "BillKaro ऐप खोलो", desc: "थारे फोन पर ऐप चालू करो" },
+    {
+      icon: "🧾",
+      title: "New Invoice टैप करो",
+      desc: 'होम स्क्रीन पर "New Invoice" दबाओ',
+    },
+    {
+      icon: "👤",
+      title: "कस्टमर डिटेल्स डालो",
+      desc: "ग्राहक रो नाम और GSTIN (वैकल्पिक) डालो",
+    },
+    {
+      icon: "🛒",
+      title: "प्रोडक्ट जोड़ो",
+      desc: "बारकोड स्कैन करो या खोज'र प्रोडक्ट जोड़ो",
+    },
+    { icon: "💳", title: "पेमेंट मोड चुणो", desc: "Cash, Card या UPI सेलेक्ट करो" },
+    {
+      icon: "📤",
+      title: "बिल बणाओ और शेयर करो",
+      desc: '"Generate Invoice" टैप करो और GST बिल बणाओ',
+    },
+  ],
+  gu: [
+    { icon: "📱", title: "BillKaro એપ ખોલો", desc: "તમારા ફોન પર એપ શરૂ કરો" },
+    {
+      icon: "🧾",
+      title: "New Invoice ટૅપ કરો",
+      desc: 'હોમ સ્ક્રીન પર "New Invoice" દબાવો',
+    },
+    {
+      icon: "👤",
+      title: "ગ્રાહક વિગત ઉમેરો",
+      desc: "ગ્રાહકનું નામ અને GSTIN (વૈકલ્પિક) દાખલ કરો",
+    },
+    {
+      icon: "🛒",
+      title: "પ્રોડક્ટ ઉમેરો",
+      desc: "બારકોડ સ્કૅન કરો અથવા શોધીને પ્રોડક્ટ ઉમેરો",
+    },
+    {
+      icon: "💳",
+      title: "ચુકવણી મોડ પસંદ કરો",
+      desc: "Cash, Card અથવા UPI પસંદ કરો",
+    },
+    {
+      icon: "📤",
+      title: "બિલ બનાવો અને શેર કરો",
+      desc: '"Generate Invoice" ટૅપ કરો અને GST બિલ બનાવો',
     },
   ],
 };
@@ -197,13 +295,29 @@ export default function HowTo({ lang }: HowToProps) {
     "from-green-400 to-green-600",
   ];
 
+  const pausedLabel =
+    lang === "en"
+      ? "Paused"
+      : lang === "hi"
+        ? "रुका हुआ"
+        : lang === "raj"
+          ? "रुक्यो"
+          : "થોભ્યો";
+  const advancingLabel =
+    lang === "en"
+      ? "Auto-advancing..."
+      : lang === "hi"
+        ? "अगले चरण पर जा रहा है..."
+        : lang === "raj"
+          ? "आगे जा रह्यो..."
+          : "આગળ જઈ રહ્યો છે...";
+
   return (
     <section
       id="howto"
       className="py-16 bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600"
     >
       <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
         <div className="text-center mb-10">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
             {tr.howto_title}
@@ -211,7 +325,6 @@ export default function HowTo({ lang }: HowToProps) {
           <p className="text-white/80 text-lg">{tr.howto_sub}</p>
         </div>
 
-        {/* Tab Buttons */}
         <div className="flex justify-center gap-4 mb-10">
           <button
             type="button"
@@ -239,7 +352,6 @@ export default function HowTo({ lang }: HowToProps) {
           </button>
         </div>
 
-        {/* Steps Pills */}
         <div className="flex flex-wrap justify-center gap-2 mb-8">
           {steps.map((step, idx) => (
             <button
@@ -264,7 +376,6 @@ export default function HowTo({ lang }: HowToProps) {
           ))}
         </div>
 
-        {/* Active Step Card */}
         <div
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
@@ -277,7 +388,6 @@ export default function HowTo({ lang }: HowToProps) {
                 : "opacity-0 translate-y-4 scale-95"
             }`}
           >
-            {/* Step number + icon */}
             <div className="flex items-center gap-4 mb-6">
               <div
                 className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${stepColors[activeStep % stepColors.length]} flex items-center justify-center shadow-lg`}
@@ -294,12 +404,10 @@ export default function HowTo({ lang }: HowToProps) {
               </div>
             </div>
 
-            {/* Description */}
             <p className="text-gray-600 text-base md:text-lg leading-relaxed">
               {steps[activeStep]?.desc}
             </p>
 
-            {/* Progress Bar */}
             <div className="mt-8">
               <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
@@ -308,15 +416,7 @@ export default function HowTo({ lang }: HowToProps) {
                 />
               </div>
               <div className="flex justify-between mt-2 text-xs text-gray-400">
-                <span>
-                  {paused
-                    ? lang === "en"
-                      ? "Paused"
-                      : "रुका हुआ"
-                    : lang === "en"
-                      ? "Auto-advancing..."
-                      : "अगले चरण पर जा रहा है..."}
-                </span>
+                <span>{paused ? pausedLabel : advancingLabel}</span>
                 <span>
                   {activeStep + 1}/{steps.length}
                 </span>
@@ -325,7 +425,6 @@ export default function HowTo({ lang }: HowToProps) {
           </div>
         </div>
 
-        {/* Navigation Arrows */}
         <div className="flex justify-center gap-4 mt-6">
           <button
             type="button"

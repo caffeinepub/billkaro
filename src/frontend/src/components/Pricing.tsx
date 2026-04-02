@@ -1,4 +1,4 @@
-import { Check, Star } from "lucide-react";
+import { Calculator, Check, Star } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { Lang } from "../translations";
 import { t } from "../translations";
@@ -45,12 +45,46 @@ export default function Pricing({ lang }: PricingProps) {
   return (
     <section id="pricing" className="py-20 bg-gray-50" ref={ref}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-14 fade-in-up">
+        <div className="text-center mb-10 fade-in-up">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3">
             {tr.pricing_title}
           </h2>
           <p className="text-gray-500 text-lg">{tr.pricing_sub}</p>
           <div className="mx-auto mt-4 w-16 h-1 rounded-full gradient-btn" />
+        </div>
+
+        {/* Bundle Highlight Box */}
+        <div
+          className="fade-in-up max-w-3xl mx-auto mb-10 rounded-3xl overflow-hidden shadow-float"
+          style={{
+            background:
+              "linear-gradient(135deg, #FF8A00 0%, #E2367A 50%, #6C3FC5 100%)",
+          }}
+          data-ocid="pricing.bundle.card"
+        >
+          <div className="p-8 text-white">
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <Calculator className="w-8 h-8 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="text-2xl sm:text-3xl font-extrabold mb-2">
+                  {tr.pricing_bundle_title}
+                </h3>
+                <p className="text-white/80 text-sm sm:text-base mb-4">
+                  {tr.pricing_bundle_sub}
+                </p>
+                {/* Calculator visual */}
+                <div className="inline-flex items-center gap-2 bg-black/20 rounded-xl px-4 py-2">
+                  <span className="font-mono text-lg sm:text-xl font-bold text-white">
+                    {tr.pricing_bundle_highlight}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
