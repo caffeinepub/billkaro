@@ -1,11 +1,127 @@
 import { ArrowRight, Download, MessageCircle } from "lucide-react";
 import { motion } from "motion/react";
+import { useEffect, useRef } from "react";
 import type { Lang } from "../translations";
 import { t } from "../translations";
 
 interface HeroProps {
   lang: Lang;
   onOpenChat: () => void;
+}
+
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  color: string;
+  alpha: number;
+}
+
+const PARTICLE_COLORS = [
+  "255,107,53",
+  "226,54,122",
+  "139,92,246",
+  "255,255,255",
+];
+
+function HeroParticles() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number>(0);
+  const particlesRef = useRef<Particle[]>([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const count = 80;
+    particlesRef.current = Array.from({ length: count }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
+      size: 1.5 + Math.random() * 2.5,
+      color:
+        PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
+      alpha: 0.4 + Math.random() * 0.6,
+    }));
+
+    const LINK_DISTANCE = 120;
+
+    const draw = () => {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const particles = particlesRef.current;
+
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = w;
+        if (p.x > w) p.x = 0;
+        if (p.y < 0) p.y = h;
+        if (p.y > h) p.y = 0;
+      }
+
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < LINK_DISTANCE) {
+            const opacity = (1 - dist / LINK_DISTANCE) * 0.15;
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(${particles[i].color},${opacity})`;
+            ctx.lineWidth = 1;
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      for (const p of particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+        ctx.fill();
+      }
+
+      rafRef.current = requestAnimationFrame(draw);
+    };
+
+    rafRef.current = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        zIndex: 0,
+        pointerEvents: "none",
+      }}
+    />
+  );
 }
 
 export default function Hero({ lang, onOpenChat }: HeroProps) {
@@ -16,10 +132,21 @@ export default function Hero({ lang, onOpenChat }: HeroProps) {
       id="hero"
       className="relative min-h-screen flex items-center gradient-hero wave-bottom pt-16 overflow-hidden"
     >
-      <div className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+      <HeroParticles />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
+      <div
+        className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl"
+        style={{ zIndex: 0 }}
+      />
+      <div
+        className="absolute bottom-20 right-10 w-96 h-96 bg-white/5 rounded-full blur-3xl"
+        style={{ zIndex: 0 }}
+      />
+
+      <div
+        className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full"
+        style={{ zIndex: 1 }}
+      >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, x: -40 }}

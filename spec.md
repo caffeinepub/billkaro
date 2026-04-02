@@ -1,30 +1,36 @@
 # BillKaro
 
 ## Current State
-The BillKaro promotional website has multiple sections: Hero, WhySection, Features, Screenshots, HowTo, WalkthroughDemo, Pricing, Contact, Footer, and ShyamaAI chatbot. It supports Hindi/English language toggle.
+- Full promotional website with Hero, WhySection, Features, Screenshots, WalkthroughDemo, FlipbookDemo, Pricing, Contact, Footer, ShyamaAI sections
+- Screenshots.tsx: 7 scrollable phone-frame screenshots with blur overlays
+- FlipbookDemo.tsx: 3D animated flipbook with touch/drag support, text-only pages
+- Hero.tsx: gradient hero with floating phone image, no particle effects
+- WalkthroughDemo.tsx: animated walkthrough with CartoonCharacter (has a 'store' screen step)
+- No testimonials section exists
 
 ## Requested Changes (Diff)
 
 ### Add
-- A new `FlipbookDemo` component: an interactive flipbook with 8 custom illustrated pages showing BillKaro product demo (Welcome, Setup Store, Add Products, Create Bill, GST Invoice, Payments, Dashboard, Download).
-- The flipbook appears on the website as a "Product Demo" section between WalkthroughDemo and Pricing.
-- The app screenshots (the 7 uploaded ones) should have a blur applied over any area that might contain a principal ID or personal identity information — achieved via CSS blur overlay on those screenshots wherever they appear.
+- ParticleJS (tsparticles) in Hero section — particles should match the orange-purple gradient theme (orange/pink/purple colors, medium density, floating/connecting particles effect)
+- Testimonials section with animated carousel — shows only: star rating (1-5 stars), person's name, and their message. No company names, no logos, no designations. Auto-scrolling carousel with smooth CSS/motion animation.
+- Animated text carousel in testimonials or as a standalone marquee/crossoul section showing BillKaro feature highlights or taglines cycling through
 
 ### Modify
-- `App.tsx`: Import and add `<FlipbookDemo>` between `<WalkthroughDemo>` and `<Pricing>`.
-- Any screenshot usage: add blur overlay on screenshots to protect principal ID info.
+- App.tsx: remove Screenshots and FlipbookDemo imports and usage
+- WalkthroughDemo: remove any reference to real screenshot images in store configuration screen — replace with illustrated/SVG mockup (no real screenshots)
+- Hero.tsx: add tsparticles canvas behind content
 
 ### Remove
-- Nothing removed.
+- Screenshots.tsx section entirely (remove from App.tsx)
+- FlipbookDemo.tsx section entirely (remove from App.tsx)
+- Store configuration screenshot from WalkthroughDemo (replace with illustrated screen)
 
 ## Implementation Plan
-1. Create `src/frontend/src/components/FlipbookDemo.tsx` — interactive flipbook with:
-   - 8 illustrated pages (generated images in /assets/generated/)
-   - Page flip animation (CSS 3D transform, card-flip style or slide)
-   - Previous/Next navigation buttons
-   - Page counter display
-   - Auto-play option with play/pause button
-   - Section title: "Product Demo"
-   - Hindi/English captions for each page
-2. Update `App.tsx` to include `<FlipbookDemo lang={lang} />`
-3. In `Screenshots.tsx`: add a CSS blur overlay on the screenshot images to blur out any principal ID or sensitive identity information visible in the screenshots.
+1. Install @tsparticles/react and @tsparticles/slim packages
+2. Update Hero.tsx to add tsparticles canvas with orange/purple/pink theme
+3. Create Testimonials.tsx with animated auto-scrolling carousel showing rating stars + name + message only
+4. Create animated text crossoul (marquee) of BillKaro feature highlights
+5. Remove Screenshots component from App.tsx
+6. Remove FlipbookDemo component from App.tsx  
+7. In WalkthroughDemo, replace store config screenshot (real image) with an SVG/illustrated mockup screen
+8. Add Testimonials section in App.tsx between WalkthroughDemo and Pricing

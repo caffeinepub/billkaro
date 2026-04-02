@@ -1,14 +1,12 @@
 import { useState } from "react";
 import Contact from "./components/Contact";
 import Features from "./components/Features";
-import FlipbookDemo from "./components/FlipbookDemo";
 import Footer from "./components/Footer";
 import Hero from "./components/Hero";
-import HowTo from "./components/HowTo";
 import Navbar from "./components/Navbar";
 import Pricing from "./components/Pricing";
-import Screenshots from "./components/Screenshots";
 import ShyamaAI from "./components/ShyamaAI";
+import Testimonials from "./components/Testimonials";
 import WalkthroughDemo from "./components/WalkthroughDemo";
 import WhySection from "./components/WhySection";
 import type { Lang } from "./translations";
@@ -28,10 +26,8 @@ export default function App() {
         <Hero lang={lang} onOpenChat={() => setChatOpen(true)} />
         <WhySection lang={lang} />
         <Features lang={lang} />
-        <Screenshots lang={lang} />
-        <HowTo lang={lang} />
         <WalkthroughDemo lang={lang} />
-        <FlipbookDemo lang={lang} />
+        <Testimonials lang={lang} />
         <Pricing lang={lang} />
         <Contact lang={lang} />
       </main>
