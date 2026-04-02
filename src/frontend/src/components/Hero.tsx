@@ -1,8 +1,9 @@
+import { Text } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { ArrowRight, Download, MessageCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef } from "react";
-import type * as THREE from "three";
+import * as THREE from "three";
 import type { Lang } from "../translations";
 import { t } from "../translations";
 
@@ -165,6 +166,121 @@ function StarField() {
   );
 }
 
+// ─── Spinning BillKaro Logo ───────────────────────────────────────────────────
+
+function SpinningLogo() {
+  const groupRef = useRef<THREE.Group>(null);
+  const matRef = useRef<THREE.MeshStandardMaterial>(null);
+  const colorA = useMemo(() => new THREE.Color("#ff6b35"), []);
+  const colorB = useMemo(() => new THREE.Color("#8b5cf6"), []);
+  const tmpColor = useMemo(() => new THREE.Color(), []);
+
+  useFrame(({ clock }) => {
+    const elapsed = clock.getElapsedTime();
+    if (groupRef.current) {
+      // Full Y-axis spin every ~8 seconds
+      groupRef.current.rotation.y = elapsed * ((Math.PI * 2) / 8);
+      // Gentle bob
+      groupRef.current.position.y = Math.sin(elapsed * 0.4) * 0.15;
+    }
+    if (matRef.current) {
+      const t = (Math.sin(elapsed * 0.8) + 1) / 2;
+      tmpColor.lerpColors(colorA, colorB, t);
+      matRef.current.color.set(tmpColor);
+      matRef.current.emissive.set(tmpColor);
+      matRef.current.emissiveIntensity = 0.6 + Math.sin(elapsed * 1.2) * 0.2;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={[0, 0, -4]}>
+      <Text
+        fontSize={1.4}
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.05}
+      >
+        BillKaro
+        <meshStandardMaterial
+          ref={matRef}
+          color="#ff6b35"
+          emissive="#ff6b35"
+          emissiveIntensity={0.6}
+          roughness={0.15}
+          metalness={0.7}
+          transparent
+          opacity={0.85}
+        />
+      </Text>
+    </group>
+  );
+}
+
+// ─── Floating Invoice Cards ───────────────────────────────────────────────────
+
+const INVOICE_POSITIONS: [number, number, number][] = [
+  [-5, 1, -4],
+  [5, -1, -5],
+  [-3, -2, -3],
+  [4, 2, -6],
+  [0, 3, -5],
+  [-4, 3, -7],
+];
+
+function InvoiceCard({
+  position,
+  index,
+}: {
+  position: [number, number, number];
+  index: number;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const offset = useMemo(
+    () => (index / INVOICE_POSITIONS.length) * Math.PI * 2,
+    [index],
+  );
+
+  useFrame(({ clock }) => {
+    if (!meshRef.current) return;
+    const elapsed = clock.getElapsedTime();
+    // Float up/down
+    meshRef.current.position.y =
+      position[1] + Math.sin(elapsed * 0.6 + offset) * 0.3;
+    // Slow tumble
+    meshRef.current.rotation.y = elapsed * 0.25 + offset;
+    meshRef.current.rotation.z = Math.sin(elapsed * 0.3 + offset) * 0.15;
+  });
+
+  return (
+    <mesh ref={meshRef} position={position}>
+      <boxGeometry args={[1.2, 1.6, 0.05]} />
+      <meshStandardMaterial
+        color="#ffffff"
+        emissive="#ffffff"
+        emissiveIntensity={0.08}
+        transparent
+        opacity={0.13}
+        roughness={0.4}
+        metalness={0.3}
+      />
+    </mesh>
+  );
+}
+
+function InvoiceCards() {
+  return (
+    <>
+      {INVOICE_POSITIONS.map((pos, i) => (
+        <InvoiceCard
+          key={`invoice-${pos[0]}-${pos[1]}-${pos[2]}`}
+          position={pos}
+          index={i}
+        />
+      ))}
+    </>
+  );
+}
+
 function ThreeScene() {
   return (
     <>
@@ -173,6 +289,8 @@ function ThreeScene() {
       <pointLight position={[-5, -3, 2]} intensity={1.2} color={0x8b5cf6} />
       <pointLight position={[0, 8, -4]} intensity={0.8} color={0xe2367a} />
       <StarField />
+      <SpinningLogo />
+      <InvoiceCards />
       {SPHERE_DATA.map((s) => (
         <GlowingSphere
           key={`sphere-${s.color}-${s.pos[0]}`}
