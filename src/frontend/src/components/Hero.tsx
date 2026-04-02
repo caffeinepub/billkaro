@@ -3,7 +3,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { ArrowRight, Download, MessageCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useRef } from "react";
-import * as THREE from "three";
+import type * as THREE from "three";
 import type { Lang } from "../translations";
 import { t } from "../translations";
 
@@ -166,66 +166,97 @@ function StarField() {
   );
 }
 
-// ─── Spinning BillKaro Logo ───────────────────────────────────────────────────
+// ─── Thermal Receipt Invoice Cards ───────────────────────────────────────────
 
-function SpinningLogo() {
-  const groupRef = useRef<THREE.Group>(null);
-  const matRef = useRef<THREE.MeshStandardMaterial>(null);
-  const colorA = useMemo(() => new THREE.Color("#ff6b35"), []);
-  const colorB = useMemo(() => new THREE.Color("#8b5cf6"), []);
-  const tmpColor = useMemo(() => new THREE.Color(), []);
-
-  useFrame(({ clock }) => {
-    const elapsed = clock.getElapsedTime();
-    if (groupRef.current) {
-      groupRef.current.rotation.y = elapsed * ((Math.PI * 2) / 8);
-      groupRef.current.position.y = 0.5 + Math.sin(elapsed * 0.4) * 0.15;
-    }
-    if (matRef.current) {
-      const tv = (Math.sin(elapsed * 0.8) + 1) / 2;
-      tmpColor.lerpColors(colorA, colorB, tv);
-      matRef.current.color.set(tmpColor);
-      matRef.current.emissive.set(tmpColor);
-      matRef.current.emissiveIntensity = 1.0 + Math.sin(elapsed * 1.2) * 0.3;
-    }
-  });
-
-  return (
-    <group ref={groupRef} position={[0, 0.5, -2]}>
-      <Text
-        fontSize={1.8}
-        anchorX="center"
-        anchorY="middle"
-        letterSpacing={0.05}
-      >
-        BillKaro
-        <meshStandardMaterial
-          ref={matRef}
-          color="#ff6b35"
-          emissive="#ff6b35"
-          emissiveIntensity={1.0}
-          roughness={0.15}
-          metalness={0.7}
-          transparent
-          opacity={1.0}
-        />
-      </Text>
-    </group>
-  );
-}
-
-// ─── Floating Invoice Cards ───────────────────────────────────────────────────
+const INVOICE_DATA = [
+  {
+    store: "BillKaro Store",
+    lines: [
+      { item: "Atta 5kg", price: "250" },
+      { item: "Daal 1kg", price: "120" },
+      { item: "Sugar 2kg", price: "90" },
+      { item: "Oil 1L", price: "145" },
+    ],
+    subtotal: "605",
+    gst: "30",
+    total: "635",
+    inv: "INV-0021",
+  },
+  {
+    store: "Sharma Kirana",
+    lines: [
+      { item: "Rice 10kg", price: "480" },
+      { item: "Salt 1kg", price: "20" },
+      { item: "Biscuits x4", price: "60" },
+      { item: "Soap x2", price: "80" },
+    ],
+    subtotal: "640",
+    gst: "32",
+    total: "672",
+    inv: "INV-0038",
+  },
+  {
+    store: "Patel General",
+    lines: [
+      { item: "Milk 2L", price: "110" },
+      { item: "Bread", price: "45" },
+      { item: "Eggs x12", price: "90" },
+      { item: "Butter 100g", price: "55" },
+    ],
+    subtotal: "300",
+    gst: "15",
+    total: "315",
+    inv: "INV-0055",
+  },
+  {
+    store: "Raj Grocery",
+    lines: [
+      { item: "Maggi x6", price: "102" },
+      { item: "Tea 250g", price: "85" },
+      { item: "Coffee 100g", price: "120" },
+      { item: "Chips x3", price: "60" },
+    ],
+    subtotal: "367",
+    gst: "18",
+    total: "385",
+    inv: "INV-0072",
+  },
+  {
+    store: "Verma Stores",
+    lines: [
+      { item: "Detergent 1kg", price: "130" },
+      { item: "Shampoo 200ml", price: "95" },
+      { item: "Toothpaste", price: "60" },
+      { item: "Facewash", price: "110" },
+    ],
+    subtotal: "395",
+    gst: "20",
+    total: "415",
+    inv: "INV-0089",
+  },
+  {
+    store: "Gupta Bazaar",
+    lines: [
+      { item: "Paneer 200g", price: "90" },
+      { item: "Curd 500g", price: "50" },
+      { item: "Ghee 500ml", price: "290" },
+      { item: "Makhana 100g", price: "75" },
+    ],
+    subtotal: "505",
+    gst: "25",
+    total: "530",
+    inv: "INV-0104",
+  },
+];
 
 const INVOICE_POSITIONS: [number, number, number][] = [
   [-5, 1, -4],
   [5, -1, -5],
   [-3, -2, -3],
   [4, 2, -6],
-  [0, 3, -5],
-  [-4, 3, -7],
+  [0.5, 3.5, -5],
+  [-4.5, 3, -7],
 ];
-
-const CARD_COLORS = ["#ff8a40", "#e2367a", "#8b5cf6"];
 
 function InvoiceCard({
   position,
@@ -234,35 +265,222 @@ function InvoiceCard({
   position: [number, number, number];
   index: number;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const offset = useMemo(
     () => (index / INVOICE_POSITIONS.length) * Math.PI * 2,
     [index],
   );
-  const cardColor = CARD_COLORS[index % 3];
+
+  const data = INVOICE_DATA[index % INVOICE_DATA.length];
 
   useFrame(({ clock }) => {
-    if (!meshRef.current) return;
+    if (!groupRef.current) return;
     const elapsed = clock.getElapsedTime();
-    meshRef.current.position.y =
-      position[1] + Math.sin(elapsed * 0.6 + offset) * 0.3;
-    meshRef.current.rotation.y = elapsed * 0.25 + offset;
-    meshRef.current.rotation.z = Math.sin(elapsed * 0.3 + offset) * 0.15;
+    groupRef.current.position.y =
+      position[1] + Math.sin(elapsed * 0.5 + offset) * 0.25;
+    // Gentle tilt — no full spin so text stays readable
+    groupRef.current.rotation.y = Math.sin(elapsed * 0.2 + offset) * 0.18;
+    groupRef.current.rotation.z = Math.sin(elapsed * 0.25 + offset) * 0.06;
   });
 
+  const cardW = 1.4;
+  const cardH = 2.2;
+  const cardD = 0.04;
+  const textColor = "#1a1a1a";
+  const divider = "──────────";
+  const z = cardD / 2 + 0.001; // just in front of the card face
+  const leftX = -cardW / 2 + 0.1;
+
+  // Line positions from top of card
+  const topY = cardH / 2 - 0.13;
+  const lineH = 0.115; // vertical spacing between lines
+
   return (
-    <mesh ref={meshRef} position={position}>
-      <boxGeometry args={[1.2, 1.6, 0.05]} />
-      <meshStandardMaterial
-        color={cardColor}
-        emissive={cardColor}
-        emissiveIntensity={0.3}
-        transparent
-        opacity={0.55}
-        roughness={0.4}
-        metalness={0.3}
-      />
-    </mesh>
+    <group ref={groupRef} position={[position[0], position[1], position[2]]}>
+      {/* Paper card body */}
+      <mesh>
+        <boxGeometry args={[cardW, cardH, cardD]} />
+        <meshStandardMaterial
+          color="#f5f0e8"
+          roughness={0.9}
+          metalness={0.0}
+          transparent
+          opacity={0.96}
+        />
+      </mesh>
+
+      {/* Slightly darker header strip */}
+      <mesh position={[0, topY - 0.03, z - 0.001]}>
+        <planeGeometry args={[cardW, 0.22]} />
+        <meshStandardMaterial color="#ebe4d5" />
+      </mesh>
+
+      {/* === Receipt text lines === */}
+
+      {/* Store name — centered, bold-looking via larger size */}
+      <Text
+        fontSize={0.1}
+        color={textColor}
+        anchorX="center"
+        anchorY="middle"
+        position={[0, topY, z]}
+        maxWidth={cardW - 0.12}
+      >
+        {data.store}
+      </Text>
+
+      {/* Invoice number */}
+      <Text
+        fontSize={0.075}
+        color="#555555"
+        anchorX="center"
+        anchorY="middle"
+        position={[0, topY - lineH * 0.9, z]}
+        maxWidth={cardW - 0.12}
+      >
+        {data.inv}
+      </Text>
+
+      {/* Divider 1 */}
+      <Text
+        fontSize={0.07}
+        color="#888888"
+        anchorX="center"
+        anchorY="middle"
+        position={[0, topY - lineH * 1.85, z]}
+      >
+        {divider}
+      </Text>
+
+      {/* Item lines */}
+      {data.lines.map((line, li) => (
+        <group key={line.item}>
+          <Text
+            fontSize={0.078}
+            color={textColor}
+            anchorX="left"
+            anchorY="middle"
+            position={[leftX, topY - lineH * (2.85 + li), z]}
+            maxWidth={0.9}
+          >
+            {line.item}
+          </Text>
+          <Text
+            fontSize={0.078}
+            color={textColor}
+            anchorX="right"
+            anchorY="middle"
+            position={[cardW / 2 - 0.08, topY - lineH * (2.85 + li), z]}
+          >
+            {`\u20B9${line.price}`}
+          </Text>
+        </group>
+      ))}
+
+      {/* Divider 2 */}
+      <Text
+        fontSize={0.07}
+        color="#888888"
+        anchorX="center"
+        anchorY="middle"
+        position={[0, topY - lineH * 7.1, z]}
+      >
+        {divider}
+      </Text>
+
+      {/* Subtotal */}
+      <Text
+        fontSize={0.078}
+        color={textColor}
+        anchorX="left"
+        anchorY="middle"
+        position={[leftX, topY - lineH * 8.0, z]}
+      >
+        Subtotal:
+      </Text>
+      <Text
+        fontSize={0.078}
+        color={textColor}
+        anchorX="right"
+        anchorY="middle"
+        position={[cardW / 2 - 0.08, topY - lineH * 8.0, z]}
+      >
+        {`\u20B9${data.subtotal}`}
+      </Text>
+
+      {/* GST */}
+      <Text
+        fontSize={0.078}
+        color={textColor}
+        anchorX="left"
+        anchorY="middle"
+        position={[leftX, topY - lineH * 9.0, z]}
+      >
+        GST (5%):
+      </Text>
+      <Text
+        fontSize={0.078}
+        color={textColor}
+        anchorX="right"
+        anchorY="middle"
+        position={[cardW / 2 - 0.08, topY - lineH * 9.0, z]}
+      >
+        {`\u20B9${data.gst}`}
+      </Text>
+
+      {/* Divider 3 */}
+      <Text
+        fontSize={0.07}
+        color="#888888"
+        anchorX="center"
+        anchorY="middle"
+        position={[0, topY - lineH * 10.0, z]}
+      >
+        {divider}
+      </Text>
+
+      {/* Total — larger */}
+      <Text
+        fontSize={0.092}
+        color="#111111"
+        anchorX="left"
+        anchorY="middle"
+        position={[leftX, topY - lineH * 11.0, z]}
+      >
+        TOTAL:
+      </Text>
+      <Text
+        fontSize={0.092}
+        color="#111111"
+        anchorX="right"
+        anchorY="middle"
+        position={[cardW / 2 - 0.08, topY - lineH * 11.0, z]}
+      >
+        {`\u20B9${data.total}`}
+      </Text>
+
+      {/* Thank you */}
+      <Text
+        fontSize={0.08}
+        color="#555555"
+        anchorX="center"
+        anchorY="middle"
+        position={[0, topY - lineH * 12.2, z]}
+      >
+        Thank You!
+      </Text>
+
+      {/* Powered by BillKaro */}
+      <Text
+        fontSize={0.065}
+        color="#ff6b35"
+        anchorX="center"
+        anchorY="middle"
+        position={[0, topY - lineH * 13.1, z]}
+      >
+        BillKaro
+      </Text>
+    </group>
   );
 }
 
@@ -271,7 +489,7 @@ function InvoiceCards() {
     <>
       {INVOICE_POSITIONS.map((pos, i) => (
         <InvoiceCard
-          key={`invoice-${pos[0]}-${pos[1]}-${pos[2]}`}
+          key={`invoice-${INVOICE_DATA[i].inv}`}
           position={pos}
           index={i}
         />
@@ -283,12 +501,12 @@ function InvoiceCards() {
 function ThreeScene() {
   return (
     <>
-      <ambientLight intensity={0.3} color={0x8b5cf6} />
+      <ambientLight intensity={0.8} color={0xffffff} />
       <pointLight position={[5, 5, 2]} intensity={1.5} color={0xff6b35} />
       <pointLight position={[-5, -3, 2]} intensity={1.2} color={0x8b5cf6} />
       <pointLight position={[0, 8, -4]} intensity={0.8} color={0xe2367a} />
+      <directionalLight position={[0, 0, 5]} intensity={0.6} color={0xffffff} />
       <StarField />
-      <SpinningLogo />
       <InvoiceCards />
       {SPHERE_DATA.map((s) => (
         <GlowingSphere
@@ -391,7 +609,7 @@ export default function Hero({ lang, onOpenChat }: HeroProps) {
             <div className="flex flex-wrap gap-6 mt-10">
               {[
                 ["Free", "Download"],
-                ["₹1", "Per Invoice"],
+                ["\u20B91", "Per Invoice"],
                 ["GST", "Compliant"],
               ].map(([val, lbl]) => (
                 <div key={val} className="text-center">
