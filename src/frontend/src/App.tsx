@@ -25,7 +25,10 @@ export default function App() {
         onLangChange={setLang}
         onOpenChat={() => setChatOpen(true)}
       />
-      <OfferBanner lang={lang} />
+      {/* pt-16 pushes the banner below the fixed 64px navbar */}
+      <div className="pt-16">
+        <OfferBanner lang={lang} />
+      </div>
       <main>
         <Hero lang={lang} onOpenChat={() => setChatOpen(true)} />
         <WhySection lang={lang} />
