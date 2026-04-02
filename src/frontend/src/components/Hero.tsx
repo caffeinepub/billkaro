@@ -2,7 +2,7 @@ import { Text } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { ArrowRight, Download, MessageCircle } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { Lang } from "../translations";
 import { t } from "../translations";
@@ -178,24 +178,22 @@ function SpinningLogo() {
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime();
     if (groupRef.current) {
-      // Full Y-axis spin every ~8 seconds
       groupRef.current.rotation.y = elapsed * ((Math.PI * 2) / 8);
-      // Gentle bob
-      groupRef.current.position.y = Math.sin(elapsed * 0.4) * 0.15;
+      groupRef.current.position.y = 0.5 + Math.sin(elapsed * 0.4) * 0.15;
     }
     if (matRef.current) {
-      const t = (Math.sin(elapsed * 0.8) + 1) / 2;
-      tmpColor.lerpColors(colorA, colorB, t);
+      const tv = (Math.sin(elapsed * 0.8) + 1) / 2;
+      tmpColor.lerpColors(colorA, colorB, tv);
       matRef.current.color.set(tmpColor);
       matRef.current.emissive.set(tmpColor);
-      matRef.current.emissiveIntensity = 0.6 + Math.sin(elapsed * 1.2) * 0.2;
+      matRef.current.emissiveIntensity = 1.0 + Math.sin(elapsed * 1.2) * 0.3;
     }
   });
 
   return (
-    <group ref={groupRef} position={[0, 0, -4]}>
+    <group ref={groupRef} position={[0, 0.5, -2]}>
       <Text
-        fontSize={1.4}
+        fontSize={1.8}
         anchorX="center"
         anchorY="middle"
         letterSpacing={0.05}
@@ -205,11 +203,11 @@ function SpinningLogo() {
           ref={matRef}
           color="#ff6b35"
           emissive="#ff6b35"
-          emissiveIntensity={0.6}
+          emissiveIntensity={1.0}
           roughness={0.15}
           metalness={0.7}
           transparent
-          opacity={0.85}
+          opacity={1.0}
         />
       </Text>
     </group>
@@ -227,6 +225,8 @@ const INVOICE_POSITIONS: [number, number, number][] = [
   [-4, 3, -7],
 ];
 
+const CARD_COLORS = ["#ff8a40", "#e2367a", "#8b5cf6"];
+
 function InvoiceCard({
   position,
   index,
@@ -239,14 +239,13 @@ function InvoiceCard({
     () => (index / INVOICE_POSITIONS.length) * Math.PI * 2,
     [index],
   );
+  const cardColor = CARD_COLORS[index % 3];
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return;
     const elapsed = clock.getElapsedTime();
-    // Float up/down
     meshRef.current.position.y =
       position[1] + Math.sin(elapsed * 0.6 + offset) * 0.3;
-    // Slow tumble
     meshRef.current.rotation.y = elapsed * 0.25 + offset;
     meshRef.current.rotation.z = Math.sin(elapsed * 0.3 + offset) * 0.15;
   });
@@ -255,11 +254,11 @@ function InvoiceCard({
     <mesh ref={meshRef} position={position}>
       <boxGeometry args={[1.2, 1.6, 0.05]} />
       <meshStandardMaterial
-        color="#ffffff"
-        emissive="#ffffff"
-        emissiveIntensity={0.08}
+        color={cardColor}
+        emissive={cardColor}
+        emissiveIntensity={0.3}
         transparent
-        opacity={0.13}
+        opacity={0.55}
         roughness={0.4}
         metalness={0.3}
       />
@@ -304,190 +303,6 @@ function ThreeScene() {
   );
 }
 
-// ─── Enhanced 2D Canvas particles ────────────────────────────────────────────
-
-interface Particle2D {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  size: number;
-  baseSize: number;
-  color: string;
-  alpha: number;
-  seed: number;
-  isStar: boolean;
-}
-
-const PARTICLE_COLORS = [
-  "255,107,53",
-  "226,54,122",
-  "139,92,246",
-  "255,255,255",
-  "255,165,0",
-  "200,100,255",
-];
-
-function EnhancedParticles() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef = useRef<number>(0);
-  const particlesRef = useRef<Particle2D[]>([]);
-  const mouseRef = useRef<{ x: number; y: number } | null>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    const onMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    };
-    const onMouseLeave = () => {
-      mouseRef.current = null;
-    };
-    const parent = canvas.parentElement;
-    parent?.addEventListener("mousemove", onMouseMove);
-    parent?.addEventListener("mouseleave", onMouseLeave);
-
-    const count = 150;
-    particlesRef.current = Array.from({ length: count }, (_, i) => {
-      const isStar = i < count * 0.2;
-      const base = isStar ? 5 + Math.random() * 3 : 1 + Math.random() * 4;
-      return {
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        size: base,
-        baseSize: base,
-        color:
-          PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
-        alpha: 0.4 + Math.random() * 0.5,
-        seed: Math.random() * Math.PI * 2,
-        isStar,
-      };
-    });
-
-    const LINK_DISTANCE = 150;
-    const REPULSE_RADIUS = 120;
-
-    const draw = () => {
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
-
-      const particles = particlesRef.current;
-      const mouse = mouseRef.current;
-      const now = Date.now();
-
-      for (const p of particles) {
-        if (p.isStar) {
-          p.size = p.baseSize + Math.sin(now / 1000 + p.seed) * 1.5;
-        }
-        if (mouse) {
-          const dx = p.x - mouse.x;
-          const dy = p.y - mouse.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < REPULSE_RADIUS && dist > 0) {
-            const force = (1 - dist / REPULSE_RADIUS) * 1.5;
-            p.vx += (dx / dist) * force * 0.15;
-            p.vy += (dy / dist) * force * 0.15;
-          }
-        }
-        p.vx *= 0.98;
-        p.vy *= 0.98;
-        const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-        if (spd < 0.1) {
-          p.vx += (Math.random() - 0.5) * 0.05;
-          p.vy += (Math.random() - 0.5) * 0.05;
-        }
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0) p.x = w;
-        if (p.x > w) p.x = 0;
-        if (p.y < 0) p.y = h;
-        if (p.y > h) p.y = 0;
-      }
-
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < LINK_DISTANCE) {
-            const opacity = (1 - dist / LINK_DISTANCE) * 0.2;
-            const grad = ctx.createLinearGradient(
-              particles[i].x,
-              particles[i].y,
-              particles[j].x,
-              particles[j].y,
-            );
-            grad.addColorStop(0, `rgba(${particles[i].color},${opacity})`);
-            grad.addColorStop(1, `rgba(${particles[j].color},${opacity})`);
-            ctx.beginPath();
-            ctx.strokeStyle = grad;
-            ctx.lineWidth = 1;
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      for (const p of particles) {
-        const glowR = p.size * 3;
-        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
-        grd.addColorStop(0, `rgba(${p.color},${p.alpha * 0.8})`);
-        grd.addColorStop(0.4, `rgba(${p.color},${p.alpha * 0.3})`);
-        grd.addColorStop(1, `rgba(${p.color},0)`);
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
-        ctx.fillStyle = grd;
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
-        ctx.fill();
-      }
-
-      rafRef.current = requestAnimationFrame(draw);
-    };
-
-    rafRef.current = requestAnimationFrame(draw);
-
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener("resize", resize);
-      parent?.removeEventListener("mousemove", onMouseMove);
-      parent?.removeEventListener("mouseleave", onMouseLeave);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: "100%",
-        zIndex: 1,
-        pointerEvents: "none",
-      }}
-    />
-  );
-}
-
 // ─── Hero component ───────────────────────────────────────────────────────────
 
 export default function Hero({ lang, onOpenChat }: HeroProps) {
@@ -516,9 +331,6 @@ export default function Hero({ lang, onOpenChat }: HeroProps) {
           <ThreeScene />
         </Canvas>
       </div>
-
-      {/* Layer 1: Enhanced 2D particle canvas */}
-      <EnhancedParticles />
 
       <div
         className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl"

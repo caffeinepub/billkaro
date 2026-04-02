@@ -31,9 +31,7 @@ function formatCountdown(ms: number) {
 }
 
 export default function OfferBanner({ lang }: OfferBannerProps) {
-  const [dismissed, setDismissed] = useState(
-    () => sessionStorage.getItem("billkaro_offer_dismissed") === "true",
-  );
+  const [dismissed, setDismissed] = useState(false);
   const [countdown, setCountdown] = useState("");
   const tr = t[lang];
   const target = getNextSunday();
@@ -51,7 +49,6 @@ export default function OfferBanner({ lang }: OfferBannerProps) {
   if (dismissed) return null;
 
   const dismiss = () => {
-    sessionStorage.setItem("billkaro_offer_dismissed", "true");
     setDismissed(true);
   };
 
@@ -67,7 +64,7 @@ export default function OfferBanner({ lang }: OfferBannerProps) {
       }}
       data-ocid="offer.banner.panel"
     >
-      <div className="max-w-7xl mx-auto px-4 py-2.5 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 justify-between">
         {/* Left */}
         <div className="flex items-center gap-2 text-center sm:text-left">
           <span className="text-lg">🔥</span>
@@ -89,8 +86,11 @@ export default function OfferBanner({ lang }: OfferBannerProps) {
           href={waUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-white text-[#E2367A] font-bold text-xs px-4 py-1.5 rounded-full hover:bg-gray-100 transition-colors whitespace-nowrap flex-shrink-0"
+          className="animate-pulse bg-white text-[#E2367A] font-extrabold text-sm px-6 py-2 rounded-full shadow-lg hover:bg-yellow-50 hover:scale-105 transition-all duration-200 whitespace-nowrap flex-shrink-0"
           data-ocid="offer.banner.button"
+          style={{
+            boxShadow: "0 0 16px rgba(255,255,255,0.5)",
+          }}
         >
           {tr.offer_banner_cta}
         </a>
