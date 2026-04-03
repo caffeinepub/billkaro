@@ -8,7 +8,7 @@ import {
   Receipt,
   Settings,
 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { motion } from "motion/react";
 import type { Lang } from "../translations";
 import { t } from "../translations";
 
@@ -29,46 +29,40 @@ const FEATURES = [
 
 export default function Features({ lang }: FeaturesProps) {
   const tr = t[lang];
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) e.target.classList.add("visible");
-        }
-      },
-      { threshold: 0.1 },
-    );
-    const els = ref.current?.querySelectorAll(".fade-in-up");
-    if (els) {
-      for (const el of els) observer.observe(el);
-    }
-    return () => observer.disconnect();
-  }, []);
 
   return (
-    <section id="features" className="py-20 bg-gray-50" ref={ref}>
+    <section id="features" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-14 fade-in-up">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-14"
+        >
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3">
             {tr.feat_title}
           </h2>
           <p className="text-gray-500 text-lg">{tr.feat_sub}</p>
           <div className="mx-auto mt-4 w-16 h-1 rounded-full gradient-btn" />
-        </div>
+        </motion.div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {FEATURES.map(({ icon: Icon, gradient, key }, i) => (
-            <div
+            <motion.div
               key={key}
-              className="fade-in-up bg-white rounded-3xl shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 p-6 border border-gray-100"
-              style={{ transitionDelay: `${i * 0.07}s` }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              className="gradient-border-card group bg-white rounded-3xl shadow-card hover:shadow-[0_12px_40px_rgba(255,138,0,0.25)] hover:-translate-y-2 transition-all duration-300 p-6 border border-gray-100"
               data-ocid={`features.item.${i + 1}`}
             >
               <div
                 className={`w-12 h-12 rounded-2xl ${gradient} flex items-center justify-center mb-4 shadow-md`}
               >
-                <Icon className="w-6 h-6 text-white" />
+                <div className="icon-bounce">
+                  <Icon className="w-6 h-6 text-white" />
+                </div>
               </div>
               <h3 className="font-bold text-gray-900 text-base mb-2">
                 {tr[`${key}_title` as keyof typeof tr]}
@@ -76,7 +70,7 @@ export default function Features({ lang }: FeaturesProps) {
               <p className="text-gray-500 text-sm leading-relaxed">
                 {tr[`${key}_desc` as keyof typeof tr]}
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

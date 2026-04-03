@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Lang } from "../translations";
 import { CartoonCharacter } from "./CartoonCharacter";
@@ -626,7 +627,13 @@ export default function WalkthroughDemo({ lang }: WalkthroughDemoProps) {
         />
 
         <div className="relative max-w-6xl mx-auto px-4">
-          <div className="text-center mb-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-10"
+          >
             <span className="inline-block px-4 py-1 rounded-full text-xs font-semibold bg-orange-400/20 text-orange-300 border border-orange-400/30 mb-4">
               {lang === "hi" ? "लाइव डेमो" : "Live Demo"}
             </span>
@@ -638,7 +645,7 @@ export default function WalkthroughDemo({ lang }: WalkthroughDemoProps) {
                 ? "Shyama आपको पूरे ऐप के बारे में बताएगी"
                 : "Watch Shyama guide you through the complete app"}
             </p>
-          </div>
+          </motion.div>
 
           {!started ? (
             <div className="flex flex-col items-center gap-8">

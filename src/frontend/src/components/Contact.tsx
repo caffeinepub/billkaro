@@ -1,5 +1,5 @@
 import { MapPin, MessageCircle, Phone } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { motion } from "motion/react";
 import type { Lang } from "../translations";
 import { t } from "../translations";
 
@@ -9,38 +9,33 @@ interface ContactProps {
 
 export default function Contact({ lang }: ContactProps) {
   const tr = t[lang];
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) e.target.classList.add("visible");
-        }
-      },
-      { threshold: 0.1 },
-    );
-    const els = ref.current?.querySelectorAll(".fade-in-up");
-    if (els) {
-      for (const el of els) observer.observe(el);
-    }
-    return () => observer.disconnect();
-  }, []);
 
   return (
-    <section id="contact" className="py-20 bg-white" ref={ref}>
+    <section id="contact" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-14 fade-in-up">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-14"
+        >
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3">
             {tr.contact_title}
           </h2>
           <p className="text-gray-500 text-lg">{tr.contact_sub}</p>
           <div className="mx-auto mt-4 w-16 h-1 rounded-full gradient-btn" />
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
           {/* Contact info */}
-          <div className="fade-in-up flex flex-col gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="flex flex-col gap-6"
+          >
             <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100 shadow-card">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-14 h-14 gradient-btn rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
@@ -80,12 +75,15 @@ export default function Contact({ lang }: ContactProps) {
                 </a>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Google Map */}
-          <div
-            className="fade-in-up rounded-3xl overflow-hidden shadow-card border border-gray-100"
-            style={{ transitionDelay: "0.1s" }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="rounded-3xl overflow-hidden shadow-card border border-gray-100"
           >
             <iframe
               src="https://maps.google.com/maps?q=302012+jaipur+rajasthan&output=embed"
@@ -97,7 +95,7 @@ export default function Contact({ lang }: ContactProps) {
               referrerPolicy="no-referrer-when-downgrade"
               title="BillKaro Location"
             />
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

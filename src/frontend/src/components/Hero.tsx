@@ -2,7 +2,7 @@ import { Text } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { ArrowRight, Download, MessageCircle } from "lucide-react";
 import { motion } from "motion/react";
-import { useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type * as THREE from "three";
 import type { Lang } from "../translations";
 import { t } from "../translations";
@@ -10,6 +10,39 @@ import { t } from "../translations";
 interface HeroProps {
   lang: Lang;
   onOpenChat: () => void;
+}
+
+// ─── Typewriter hook ──────────────────────────────────────────────────────────
+
+function useTypewriter(text: string, speed = 40) {
+  const [displayText, setDisplayText] = useState("");
+
+  useEffect(() => {
+    setDisplayText("");
+    if (!text) return;
+    let i = 0;
+    const interval = setInterval(() => {
+      i += 1;
+      setDisplayText(text.slice(0, i));
+      if (i >= text.length) clearInterval(interval);
+    }, speed);
+    return () => clearInterval(interval);
+  }, [text, speed]);
+
+  return displayText;
+}
+
+function renderHeadlineWithGlow(text: string) {
+  // Look for BillKaro (case-sensitive) in the displayed text
+  const idx = text.indexOf("BillKaro");
+  if (idx === -1) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <span className="text-glow-orange">BillKaro</span>
+      {text.slice(idx + 8)}
+    </>
+  );
 }
 
 // ─── Three.js scene components ───────────────────────────────────────────────
@@ -258,14 +291,22 @@ const INVOICE_POSITIONS: [number, number, number][] = [
   [-4.5, 3, -7],
 ];
 
+// Glow colors per card index: alternating orange / purple
+const GLOW_COLORS = [
+  0xff6b35, 0x8b5cf6, 0xff6b35, 0x8b5cf6, 0xff6b35, 0x8b5cf6,
+];
+
 function InvoiceCard({
   position,
   index,
+  scrollRef,
 }: {
   position: [number, number, number];
   index: number;
+  scrollRef: React.RefObject<number>;
 }) {
   const groupRef = useRef<THREE.Group>(null);
+  const lightRef = useRef<THREE.PointLight>(null);
   const offset = useMemo(
     () => (index / INVOICE_POSITIONS.length) * Math.PI * 2,
     [index],
@@ -276,11 +317,19 @@ function InvoiceCard({
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
     const elapsed = clock.getElapsedTime();
-    groupRef.current.position.y =
-      position[1] + Math.sin(elapsed * 0.5 + offset) * 0.25;
-    // Gentle tilt — no full spin so text stays readable
+    // Floating y motion
+    const floatY = position[1] + Math.sin(elapsed * 0.5 + offset) * 0.25;
+    // Parallax offset from scroll: different depth lanes move at different rates
+    const parallaxShift = scrollRef.current * 0.002 * ((index % 3) - 1);
+    groupRef.current.position.y = floatY + parallaxShift;
+    // Gentle tilt
     groupRef.current.rotation.y = Math.sin(elapsed * 0.2 + offset) * 0.18;
     groupRef.current.rotation.z = Math.sin(elapsed * 0.25 + offset) * 0.06;
+    // Glow pulse
+    if (lightRef.current) {
+      lightRef.current.intensity =
+        Math.sin(elapsed * 1.5 + offset) * 0.45 + 0.75;
+    }
   });
 
   const cardW = 1.4;
@@ -288,15 +337,23 @@ function InvoiceCard({
   const cardD = 0.04;
   const textColor = "#1a1a1a";
   const divider = "──────────";
-  const z = cardD / 2 + 0.001; // just in front of the card face
+  const z = cardD / 2 + 0.001;
   const leftX = -cardW / 2 + 0.1;
-
-  // Line positions from top of card
   const topY = cardH / 2 - 0.13;
-  const lineH = 0.115; // vertical spacing between lines
+  const lineH = 0.115;
 
   return (
     <group ref={groupRef} position={[position[0], position[1], position[2]]}>
+      {/* Glow point light near the card */}
+      <pointLight
+        ref={lightRef}
+        position={[0, 0, 0.5]}
+        color={GLOW_COLORS[index % GLOW_COLORS.length]}
+        intensity={0.75}
+        distance={3}
+        decay={2}
+      />
+
       {/* Paper card body */}
       <mesh>
         <boxGeometry args={[cardW, cardH, cardD]} />
@@ -315,9 +372,7 @@ function InvoiceCard({
         <meshStandardMaterial color="#ebe4d5" />
       </mesh>
 
-      {/* === Receipt text lines === */}
-
-      {/* Store name — centered, bold-looking via larger size */}
+      {/* Store name */}
       <Text
         fontSize={0.1}
         color={textColor}
@@ -439,7 +494,7 @@ function InvoiceCard({
         {divider}
       </Text>
 
-      {/* Total — larger */}
+      {/* Total */}
       <Text
         fontSize={0.092}
         color="#111111"
@@ -484,7 +539,7 @@ function InvoiceCard({
   );
 }
 
-function InvoiceCards() {
+function InvoiceCards({ scrollRef }: { scrollRef: React.RefObject<number> }) {
   return (
     <>
       {INVOICE_POSITIONS.map((pos, i) => (
@@ -492,13 +547,14 @@ function InvoiceCards() {
           key={`invoice-${INVOICE_DATA[i].inv}`}
           position={pos}
           index={i}
+          scrollRef={scrollRef}
         />
       ))}
     </>
   );
 }
 
-function ThreeScene() {
+function ThreeScene({ scrollRef }: { scrollRef: React.RefObject<number> }) {
   return (
     <>
       <ambientLight intensity={0.8} color={0xffffff} />
@@ -507,7 +563,7 @@ function ThreeScene() {
       <pointLight position={[0, 8, -4]} intensity={0.8} color={0xe2367a} />
       <directionalLight position={[0, 0, 5]} intensity={0.6} color={0xffffff} />
       <StarField />
-      <InvoiceCards />
+      <InvoiceCards scrollRef={scrollRef} />
       {SPHERE_DATA.map((s) => (
         <GlowingSphere
           key={`sphere-${s.color}-${s.pos[0]}`}
@@ -521,15 +577,66 @@ function ThreeScene() {
   );
 }
 
+// ─── Ripple helper ────────────────────────────────────────────────────────────
+
+function addRipple(e: React.MouseEvent<HTMLElement>, target: HTMLElement) {
+  const rect = target.getBoundingClientRect();
+  const span = document.createElement("span");
+  span.classList.add("ripple-span");
+  span.style.left = `${e.clientX - rect.left}px`;
+  span.style.top = `${e.clientY - rect.top}px`;
+  target.appendChild(span);
+  setTimeout(() => span.remove(), 650);
+}
+
 // ─── Hero component ───────────────────────────────────────────────────────────
 
 export default function Hero({ lang, onOpenChat }: HeroProps) {
   const tr = t[lang];
+  const displayText = useTypewriter(tr.hero_headline, 40);
+
+  // Mouse tilt state
+  const [tiltX, setTiltX] = useState(0);
+  const [tiltY, setTiltY] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+
+  // Scroll ref for Three.js parallax (ref to avoid re-renders)
+  const scrollRef = useRef<number>(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      scrollRef.current = window.scrollY;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const { width, height } = rect;
+    setTiltX(((x - width / 2) / width) * 8);
+    setTiltY(((y - height / 2) / height) * -8);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTiltX(0);
+    setTiltY(0);
+    setIsHovering(false);
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    setIsHovering(true);
+  }, []);
 
   return (
     <section
       id="hero"
       className="relative min-h-screen flex items-center gradient-hero wave-bottom pt-16 overflow-hidden"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onMouseEnter={handleMouseEnter}
     >
       {/* Layer 0: Three.js 3D scene */}
       <div
@@ -546,7 +653,7 @@ export default function Hero({ lang, onOpenChat }: HeroProps) {
           gl={{ alpha: true, antialias: true }}
           style={{ width: "100%", height: "100%" }}
         >
-          <ThreeScene />
+          <ThreeScene scrollRef={scrollRef} />
         </Canvas>
       </div>
 
@@ -561,7 +668,13 @@ export default function Hero({ lang, onOpenChat }: HeroProps) {
 
       <div
         className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full"
-        style={{ zIndex: 2 }}
+        style={{
+          zIndex: 2,
+          transform: `perspective(1000px) rotateX(${tiltY}deg) rotateY(${tiltX}deg)`,
+          transition: isHovering
+            ? "transform 0.1s ease-out"
+            : "transform 0.5s ease-out",
+        }}
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div
@@ -575,8 +688,11 @@ export default function Hero({ lang, onOpenChat }: HeroProps) {
               {tr.hero_badge}
             </span>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-4">
-              {tr.hero_headline}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 min-h-[4.5rem] sm:min-h-[6rem] lg:min-h-[7.5rem]">
+              {renderHeadlineWithGlow(displayText)}
+              {displayText.length < tr.hero_headline.length && (
+                <span className="animate-pulse">|</span>
+              )}
             </h1>
 
             <p className="text-lg sm:text-xl text-white/90 mb-2 font-medium">
@@ -589,16 +705,20 @@ export default function Hero({ lang, onOpenChat }: HeroProps) {
                 href="https://gst-invoice---grocery-io0.caffeine.xyz/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-white text-[#E2367A] font-bold px-8 py-4 rounded-pill text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200"
+                className="btn-shimmer inline-flex items-center justify-center gap-2 bg-white text-[#E2367A] font-bold px-8 py-4 rounded-pill text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 relative overflow-hidden"
                 data-ocid="hero.primary_button"
+                onClick={(e) => addRipple(e, e.currentTarget)}
               >
                 {tr.hero_cta}
                 <ArrowRight className="w-5 h-5" />
               </a>
               <button
                 type="button"
-                onClick={onOpenChat}
-                className="inline-flex items-center justify-center gap-2 bg-white/15 backdrop-blur-sm border border-white/30 text-white font-semibold px-8 py-4 rounded-pill text-lg hover:bg-white/25 transition-all duration-200"
+                onClick={(e) => {
+                  addRipple(e, e.currentTarget);
+                  onOpenChat();
+                }}
+                className="inline-flex items-center justify-center gap-2 bg-white/15 backdrop-blur-sm border border-white/30 text-white font-semibold px-8 py-4 rounded-pill text-lg hover:bg-white/25 transition-all duration-200 relative overflow-hidden"
                 data-ocid="hero.secondary_button"
               >
                 <MessageCircle className="w-5 h-5" />

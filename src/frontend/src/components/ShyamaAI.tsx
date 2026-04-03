@@ -923,7 +923,7 @@ export default function ShyamaAI({
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }); // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on message change
+  });
 
   const chooseLang = (l: Lang) => {
     setChatLang(l);
@@ -1023,7 +1023,7 @@ export default function ShyamaAI({
       <button
         type="button"
         onClick={onToggle}
-        className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full gradient-btn shadow-float flex items-center justify-center hover:scale-110 transition-transform duration-200"
+        className="chat-fab-ring fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full gradient-btn shadow-float flex items-center justify-center hover:scale-110 transition-transform duration-200 relative"
         data-ocid="chatbot.open_modal_button"
         title="Chat with Shyama"
       >

@@ -1,5 +1,6 @@
 import { Calculator, Check, Star } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { motion, useInView } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import type { Lang } from "../translations";
 import { t } from "../translations";
 
@@ -7,25 +8,44 @@ interface PricingProps {
   lang: Lang;
 }
 
-export default function Pricing({ lang }: PricingProps) {
-  const tr = t[lang];
-  const ref = useRef<HTMLDivElement>(null);
+// Animated counter: counts from 0 to target over durationMs ms
+function useAnimatedCounter(
+  target: number,
+  trigger: boolean,
+  durationMs: number,
+) {
+  const [value, setValue] = useState(0);
+  const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) e.target.classList.add("visible");
-        }
-      },
-      { threshold: 0.1 },
-    );
-    const els = ref.current?.querySelectorAll(".fade-in-up");
-    if (els) {
-      for (const el of els) observer.observe(el);
-    }
-    return () => observer.disconnect();
-  }, []);
+    if (!trigger) return;
+    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+    const start = performance.now();
+    const from = 0;
+    const step = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / durationMs, 1);
+      const eased = 1 - (1 - progress) ** 3;
+      setValue(Math.round(from + (target - from) * eased));
+      if (progress < 1) {
+        frameRef.current = requestAnimationFrame(step);
+      }
+    };
+    frameRef.current = requestAnimationFrame(step);
+    return () => {
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+    };
+  }, [target, trigger, durationMs]);
+
+  return value;
+}
+
+export default function Pricing({ lang }: PricingProps) {
+  const tr = t[lang];
+  const [invoiceCount, setInvoiceCount] = useState(100);
+  const bundleRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(bundleRef, { once: false, margin: "-80px" });
+  const displayCount = useAnimatedCounter(invoiceCount, isInView, 800);
 
   const freeFeatures = [
     tr.pricing_free_f1,
@@ -43,19 +63,30 @@ export default function Pricing({ lang }: PricingProps) {
   ];
 
   return (
-    <section id="pricing" className="py-20 bg-gray-50" ref={ref}>
+    <section id="pricing" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10 fade-in-up">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-10"
+        >
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3">
             {tr.pricing_title}
           </h2>
           <p className="text-gray-500 text-lg">{tr.pricing_sub}</p>
           <div className="mx-auto mt-4 w-16 h-1 rounded-full gradient-btn" />
-        </div>
+        </motion.div>
 
-        {/* Bundle Highlight Box */}
-        <div
-          className="fade-in-up max-w-3xl mx-auto mb-10 rounded-3xl overflow-hidden shadow-float"
+        {/* Bundle Highlight Box + Interactive Calculator */}
+        <motion.div
+          ref={bundleRef}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="max-w-3xl mx-auto mb-10 rounded-3xl overflow-hidden shadow-float"
           style={{
             background:
               "linear-gradient(135deg, #FF8A00 0%, #E2367A 50%, #6C3FC5 100%)",
@@ -76,21 +107,48 @@ export default function Pricing({ lang }: PricingProps) {
                 <p className="text-white/80 text-sm sm:text-base mb-4">
                   {tr.pricing_bundle_sub}
                 </p>
-                {/* Calculator visual */}
-                <div className="inline-flex items-center gap-2 bg-black/20 rounded-xl px-4 py-2">
-                  <span className="font-mono text-lg sm:text-xl font-bold text-white">
-                    {tr.pricing_bundle_highlight}
-                  </span>
+                {/* Animated calculator */}
+                <div className="inline-flex flex-col gap-2">
+                  <div className="inline-flex items-center gap-2 bg-black/20 rounded-xl px-4 py-2">
+                    <span className="font-mono text-lg sm:text-xl font-bold text-white">
+                      You generate{" "}
+                      <span className="text-yellow-300">{displayCount}</span>{" "}
+                      invoices/month → you pay only{" "}
+                      <span className="text-yellow-300">₹{displayCount}</span>
+                    </span>
+                  </div>
+                  {/* Slider */}
+                  <div className="flex items-center gap-3 mt-2">
+                    <span className="text-xs text-white/60">1</span>
+                    <input
+                      type="range"
+                      min={1}
+                      max={500}
+                      value={invoiceCount}
+                      onChange={(e) => setInvoiceCount(Number(e.target.value))}
+                      className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+                      style={{ accentColor: "#FF8A00" }}
+                      data-ocid="pricing.calculator.input"
+                    />
+                    <span className="text-xs text-white/60">500</span>
+                  </div>
+                  <p className="text-xs text-white/60 text-center">
+                    Drag the slider to calculate your monthly cost
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           {/* Free card */}
-          <div
-            className="fade-in-up bg-white rounded-3xl shadow-card p-8 border border-gray-100"
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="bg-white rounded-3xl shadow-card p-8 border border-gray-100"
             data-ocid="pricing.free.card"
           >
             <h3 className="text-xl font-bold text-gray-900 mb-1">
@@ -123,12 +181,15 @@ export default function Pricing({ lang }: PricingProps) {
             >
               {tr.pricing_free_cta}
             </a>
-          </div>
+          </motion.div>
 
           {/* Paid card (recommended) */}
-          <div
-            className="fade-in-up relative gradient-hero rounded-3xl shadow-float p-8 text-white"
-            style={{ transitionDelay: "0.1s" }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="relative gradient-hero rounded-3xl shadow-float p-8 text-white"
             data-ocid="pricing.paid.card"
           >
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -167,7 +228,7 @@ export default function Pricing({ lang }: PricingProps) {
             >
               {tr.pricing_paid_cta}
             </a>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
