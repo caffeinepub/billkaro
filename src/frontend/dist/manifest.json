@@ -12,13 +12,13 @@
   "categories": ["business", "finance", "productivity"],
   "icons": [
     {
-      "src": "/assets/generated/billkaro-icon-192.dim_192x192.png",
+      "src": "/assets/generated/billkaro-pwa-icon-192.dim_192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/assets/generated/billkaro-icon-512.dim_512x512.png",
+      "src": "/assets/generated/billkaro-pwa-icon-512.dim_512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -26,7 +26,7 @@
   ],
   "screenshots": [
     {
-      "src": "/assets/generated/billkaro-icon-512.dim_512x512.png",
+      "src": "/assets/generated/billkaro-pwa-icon-512.dim_512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
@@ -41,7 +41,7 @@
       "url": "/?chat=open",
       "icons": [
         {
-          "src": "/assets/generated/billkaro-icon-192.dim_192x192.png",
+          "src": "/assets/generated/billkaro-pwa-icon-192.dim_192x192.png",
           "sizes": "192x192"
         }
       ]

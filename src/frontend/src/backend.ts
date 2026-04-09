@@ -89,20 +89,46 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface ContactSubmission {
+export interface ContactRecord {
+    id: bigint;
+    city: string;
     name: string;
     message: string;
+    timestamp: bigint;
     phone: string;
 }
-export interface backendInterface {
-    getAllContacts(): Promise<Array<ContactSubmission>>;
-    getContact(id: bigint): Promise<ContactSubmission>;
-    removeContact(id: bigint): Promise<void>;
-    submitContact(form: ContactSubmission): Promise<bigint>;
+export interface VisitStats {
+    dailyVisits: Array<[bigint, bigint]>;
+    totalVisits: bigint;
+    visitsByCity: Array<[string, bigint]>;
 }
+export interface backendInterface {
+    deleteContact(id: bigint): Promise<boolean>;
+    getAllContacts(): Promise<Array<ContactRecord>>;
+    getContact(id: bigint): Promise<ContactRecord | null>;
+    getVisitStats(): Promise<VisitStats>;
+    recordVisit(city: string): Promise<void>;
+    removeContact(id: bigint): Promise<boolean>;
+    submitContact(name: string, phone: string, city: string, message: string): Promise<bigint>;
+}
+import type { ContactRecord as _ContactRecord } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
-    async getAllContacts(): Promise<Array<ContactSubmission>> {
+    async deleteContact(arg0: bigint): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteContact(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteContact(arg0);
+            return result;
+        }
+    }
+    async getAllContacts(): Promise<Array<ContactRecord>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllContacts();
@@ -116,21 +142,49 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getContact(arg0: bigint): Promise<ContactSubmission> {
+    async getContact(arg0: bigint): Promise<ContactRecord | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getContact(arg0);
-                return result;
+                return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getContact(arg0);
+            return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getVisitStats(): Promise<VisitStats> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getVisitStats();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getVisitStats();
             return result;
         }
     }
-    async removeContact(arg0: bigint): Promise<void> {
+    async recordVisit(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.recordVisit(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.recordVisit(arg0);
+            return result;
+        }
+    }
+    async removeContact(arg0: bigint): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.removeContact(arg0);
@@ -144,20 +198,23 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async submitContact(arg0: ContactSubmission): Promise<bigint> {
+    async submitContact(arg0: string, arg1: string, arg2: string, arg3: string): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.submitContact(arg0);
+                const result = await this.actor.submitContact(arg0, arg1, arg2, arg3);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.submitContact(arg0);
+            const result = await this.actor.submitContact(arg0, arg1, arg2, arg3);
             return result;
         }
     }
+}
+function from_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ContactRecord]): ContactRecord | null {
+    return value.length === 0 ? null : value[0];
 }
 export interface CreateActorOptions {
     agent?: Agent;

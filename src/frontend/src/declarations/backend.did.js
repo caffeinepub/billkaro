@@ -8,33 +8,63 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
-export const ContactSubmission = IDL.Record({
+export const ContactRecord = IDL.Record({
+  'id' : IDL.Nat,
+  'city' : IDL.Text,
   'name' : IDL.Text,
   'message' : IDL.Text,
+  'timestamp' : IDL.Int,
   'phone' : IDL.Text,
+});
+export const VisitStats = IDL.Record({
+  'dailyVisits' : IDL.Vec(IDL.Tuple(IDL.Int, IDL.Nat)),
+  'totalVisits' : IDL.Nat,
+  'visitsByCity' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
 });
 
 export const idlService = IDL.Service({
-  'getAllContacts' : IDL.Func([], [IDL.Vec(ContactSubmission)], ['query']),
-  'getContact' : IDL.Func([IDL.Nat], [ContactSubmission], ['query']),
-  'removeContact' : IDL.Func([IDL.Nat], [], []),
-  'submitContact' : IDL.Func([ContactSubmission], [IDL.Nat], []),
+  'deleteContact' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+  'getAllContacts' : IDL.Func([], [IDL.Vec(ContactRecord)], ['query']),
+  'getContact' : IDL.Func([IDL.Nat], [IDL.Opt(ContactRecord)], ['query']),
+  'getVisitStats' : IDL.Func([], [VisitStats], ['query']),
+  'recordVisit' : IDL.Func([IDL.Text], [], []),
+  'removeContact' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+  'submitContact' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
-  const ContactSubmission = IDL.Record({
+  const ContactRecord = IDL.Record({
+    'id' : IDL.Nat,
+    'city' : IDL.Text,
     'name' : IDL.Text,
     'message' : IDL.Text,
+    'timestamp' : IDL.Int,
     'phone' : IDL.Text,
+  });
+  const VisitStats = IDL.Record({
+    'dailyVisits' : IDL.Vec(IDL.Tuple(IDL.Int, IDL.Nat)),
+    'totalVisits' : IDL.Nat,
+    'visitsByCity' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
   });
   
   return IDL.Service({
-    'getAllContacts' : IDL.Func([], [IDL.Vec(ContactSubmission)], ['query']),
-    'getContact' : IDL.Func([IDL.Nat], [ContactSubmission], ['query']),
-    'removeContact' : IDL.Func([IDL.Nat], [], []),
-    'submitContact' : IDL.Func([ContactSubmission], [IDL.Nat], []),
+    'deleteContact' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+    'getAllContacts' : IDL.Func([], [IDL.Vec(ContactRecord)], ['query']),
+    'getContact' : IDL.Func([IDL.Nat], [IDL.Opt(ContactRecord)], ['query']),
+    'getVisitStats' : IDL.Func([], [VisitStats], ['query']),
+    'recordVisit' : IDL.Func([IDL.Text], [], []),
+    'removeContact' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+    'submitContact' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
   });
 };
 

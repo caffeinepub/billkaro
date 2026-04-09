@@ -4,7 +4,7 @@ export const t = {
   en: {
     // Nav
     nav_features: "Features",
-    nav_screenshots: "Screenshots",
+    nav_inquiry: "Inquiry",
     nav_pricing: "Pricing",
     nav_contact: "Contact",
     nav_cta: "Get Started Free",
@@ -130,7 +130,7 @@ export const t = {
   hi: {
     // Nav
     nav_features: "विशेषताएं",
-    nav_screenshots: "स्क्रीनशॉट",
+    nav_inquiry: "पूछताछ",
     nav_pricing: "मूल्य",
     nav_contact: "संपर्क",
     nav_cta: "मुफ्त शुरू करें",
@@ -247,7 +247,7 @@ export const t = {
   raj: {
     // Nav
     nav_features: "खूबियां",
-    nav_screenshots: "स्क्रीनशॉट",
+    nav_inquiry: "पूछताछ",
     nav_pricing: "भाव",
     nav_contact: "संपर्क",
     nav_cta: "मुफ्त शुरू करो",
@@ -364,7 +364,7 @@ export const t = {
   gu: {
     // Nav
     nav_features: "વિશેષતાઓ",
-    nav_screenshots: "સ્ક્રીનશૉટ",
+    nav_inquiry: "પૂછો",
     nav_pricing: "કિંમત",
     nav_contact: "સંપર્ક",
     nav_cta: "મફત શરૂ કરો",

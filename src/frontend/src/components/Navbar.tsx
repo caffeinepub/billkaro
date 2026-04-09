@@ -60,7 +60,7 @@ export default function Navbar({
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-6">
-            {["features", "screenshots", "pricing", "contact"].map((sec) => (
+            {["features", "inquiry", "pricing", "contact"].map((sec) => (
               <button
                 type="button"
                 key={sec}
@@ -102,6 +102,13 @@ export default function Navbar({
             >
               {tr.nav_cta}
             </a>
+            <a
+              href="#admin"
+              className="text-gray-500 hover:text-gray-300 text-xs transition-colors"
+              data-ocid="nav.admin.link"
+            >
+              Admin
+            </a>
           </div>
 
           {/* Mobile hamburger */}
@@ -124,7 +131,7 @@ export default function Navbar({
       {menuOpen && (
         <div className="md:hidden bg-[#170C2F] border-t border-white/10 px-4 pb-4">
           <div className="flex flex-col gap-3 pt-3">
-            {["features", "screenshots", "pricing", "contact"].map((sec) => (
+            {["features", "inquiry", "pricing", "contact"].map((sec) => (
               <button
                 type="button"
                 key={sec}

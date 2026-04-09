@@ -1,0 +1,31 @@
+type VisitStats = 
+ record {
+   dailyVisits: vec record {
+                      int;
+                      nat;
+                    };
+   totalVisits: nat;
+   visitsByCity: vec record {
+                       text;
+                       nat;
+                     };
+ };
+type ContactRecord = 
+ record {
+   city: text;
+   id: nat;
+   message: text;
+   name: text;
+   phone: text;
+   timestamp: int;
+ };
+service : {
+  deleteContact: (id: nat) -> (bool);
+  getAllContacts: () -> (vec ContactRecord) query;
+  getContact: (id: nat) -> (opt ContactRecord) query;
+  getVisitStats: () -> (VisitStats) query;
+  recordVisit: (city: text) -> ();
+  removeContact: (id: nat) -> (bool);
+  submitContact: (name: text, phone: text, city: text, message: text) ->
+   (nat);
+}

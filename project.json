@@ -1,0 +1,29 @@
+{
+  "overview": "BillKaro is a promotional website for a grocery billing app targeting Indian kirana stores. Features an animated hero with floating thermal printer invoice cards, multi-language support (Hindi, English, Marwadi, Gujarati), Shyama AI chatbot, PWA support, customer inquiry form, and a protected admin dashboard with visitor analytics and inquiry management.",
+  "features": [
+    "Customer inquiry form with name, phone, and message",
+    "Admin dashboard protected by Internet Identity login",
+    "Site visit analytics with charts",
+    "Visitor city/location breakdown",
+    "Inquiry management with WhatsApp reply buttons",
+    "Shyama AI chatbot in 4 languages",
+    "Three.js animated hero with floating invoice cards",
+    "Progressive Web App (PWA) support",
+    "Multi-language toggle (Hindi, English, Marwadi, Gujarati)",
+    "Animated pricing calculator"
+  ],
+  "category": "marketing-promotions",
+  "tags": [
+    "billing",
+    "grocery",
+    "india",
+    "kirana",
+    "gst",
+    "invoice",
+    "pwa",
+    "chatbot",
+    "multilingual",
+    "admin"
+  ],
+  "last_updated": "2026-04-09T09:41:22.596Z"
+}

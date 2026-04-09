@@ -1,46 +1,124 @@
-import Array "mo:core/Array";
-import Iter "mo:core/Iter";
 import Map "mo:core/Map";
-import Runtime "mo:core/Runtime";
-import Order "mo:core/Order";
+import Time "mo:core/Time";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
-  type ContactSubmission = {
-    name : Text;
-    phone : Text;
+  // ── Shared types ──────────────────────────────────────────────────────────
+
+  public type ContactRecord = {
+    id      : Nat;
+    name    : Text;
+    phone   : Text;
+    city    : Text;
     message : Text;
+    timestamp : Int;
   };
 
-  module ContactSubmission {
-    public func compare(sub1 : ContactSubmission, sub2 : ContactSubmission) : Order.Order {
-      sub1.name.compare(sub2.name);
-    };
+  public type VisitStats = {
+    totalVisits  : Nat;
+    visitsByCity : [(Text, Nat)];
+    dailyVisits  : [(Int, Nat)];
   };
 
-  var nextId = 0;
+  // Internal visit record
+  type VisitEntry = {
+    city      : Text;
+    timestamp : Int;
+  };
 
-  let inquiries = Map.empty<Nat, ContactSubmission>();
+  // ── State ─────────────────────────────────────────────────────────────────
 
-  public shared ({ caller }) func submitContact(form : ContactSubmission) : async Nat {
+  var nextId : Nat = 0;
+  let inquiries = Map.empty<Nat, ContactRecord>();
+
+  // Separate stable map for visit analytics: visit index → VisitEntry
+  var nextVisitId : Nat = 0;
+  let visits = Map.empty<Nat, VisitEntry>();
+
+  // ── Contact methods ───────────────────────────────────────────────────────
+
+  public shared ({ caller = _ }) func submitContact(
+    name    : Text,
+    phone   : Text,
+    city    : Text,
+    message : Text,
+  ) : async Nat {
     let id = nextId;
     nextId += 1;
-    inquiries.add(id, form);
+    let record : ContactRecord = {
+      id;
+      name;
+      phone;
+      city;
+      message;
+      timestamp = Time.now();
+    };
+    inquiries.add(id, record);
     id;
   };
 
-  public query ({ caller }) func getAllContacts() : async [ContactSubmission] {
-    inquiries.values().toArray().sort();
+  public query ({ caller = _ }) func getAllContacts() : async [ContactRecord] {
+    inquiries.values().toArray();
   };
 
-  public query ({ caller }) func getContact(id : Nat) : async ContactSubmission {
-    switch (inquiries.get(id)) {
-      case (?contact) { contact };
-      case (null) { Runtime.trap("Contact entry not found!") };
-    };
+  public query ({ caller = _ }) func getContact(id : Nat) : async ?ContactRecord {
+    inquiries.get(id);
   };
 
-  public shared ({ caller }) func removeContact(id : Nat) : async () {
-    if (not inquiries.containsKey(id)) { Runtime.trap("Contact entry does not exist!") };
+  // Legacy alias — kept for backward compatibility
+  public shared ({ caller = _ }) func removeContact(id : Nat) : async Bool {
+    if (not inquiries.containsKey(id)) { return false };
     inquiries.remove(id);
+    true;
+  };
+
+  // Admin delete — same logic, new name matches contract
+  public shared ({ caller = _ }) func deleteContact(id : Nat) : async Bool {
+    if (not inquiries.containsKey(id)) { return false };
+    inquiries.remove(id);
+    true;
+  };
+
+  // ── Visit analytics ───────────────────────────────────────────────────────
+
+  public shared ({ caller = _ }) func recordVisit(city : Text) : async () {
+    let vid = nextVisitId;
+    nextVisitId += 1;
+    visits.add(vid, { city; timestamp = Time.now() });
+  };
+
+  public query ({ caller = _ }) func getVisitStats() : async VisitStats {
+    let totalVisits = visits.size();
+
+    // Build city → count map
+    let cityMap = Map.empty<Text, Nat>();
+    visits.values().forEach(func(v : VisitEntry) {
+      let current = switch (cityMap.get(v.city)) {
+        case (?n) n;
+        case null 0;
+      };
+      cityMap.add(v.city, current + 1);
+    });
+
+    // Convert to sorted array of (city, count)
+    let visitsByCity : [(Text, Nat)] = cityMap.entries().toArray();
+
+    // Build day → count map
+    // Epoch day = timestamp / nanoseconds_per_day
+    let nsPerDay : Int = 86_400_000_000_000;
+    let dayMap = Map.empty<Int, Nat>();
+    visits.values().forEach(func(v : VisitEntry) {
+      let day : Int = v.timestamp / nsPerDay;
+      let current = switch (dayMap.get(day)) {
+        case (?n) n;
+        case null 0;
+      };
+      dayMap.add(day, current + 1);
+    });
+
+    let dailyVisits : [(Int, Nat)] = dayMap.entries().toArray();
+
+    { totalVisits; visitsByCity; dailyVisits };
   };
 };

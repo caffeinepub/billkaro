@@ -10,16 +10,27 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface ContactSubmission {
+export interface ContactRecord {
+  'id' : bigint,
+  'city' : string,
   'name' : string,
   'message' : string,
+  'timestamp' : bigint,
   'phone' : string,
 }
+export interface VisitStats {
+  'dailyVisits' : Array<[bigint, bigint]>,
+  'totalVisits' : bigint,
+  'visitsByCity' : Array<[string, bigint]>,
+}
 export interface _SERVICE {
-  'getAllContacts' : ActorMethod<[], Array<ContactSubmission>>,
-  'getContact' : ActorMethod<[bigint], ContactSubmission>,
-  'removeContact' : ActorMethod<[bigint], undefined>,
-  'submitContact' : ActorMethod<[ContactSubmission], bigint>,
+  'deleteContact' : ActorMethod<[bigint], boolean>,
+  'getAllContacts' : ActorMethod<[], Array<ContactRecord>>,
+  'getContact' : ActorMethod<[bigint], [] | [ContactRecord]>,
+  'getVisitStats' : ActorMethod<[], VisitStats>,
+  'recordVisit' : ActorMethod<[string], undefined>,
+  'removeContact' : ActorMethod<[bigint], boolean>,
+  'submitContact' : ActorMethod<[string, string, string, string], bigint>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
